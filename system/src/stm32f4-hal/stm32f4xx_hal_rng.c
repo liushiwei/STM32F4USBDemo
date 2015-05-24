@@ -2,8 +2,8 @@
   ******************************************************************************
   * @file    stm32f4xx_hal_rng.c
   * @author  MCD Application Team
-  * @version V1.2.0
-  * @date    26-December-2014
+  * @version V1.3.0
+  * @date    09-March-2015
   * @brief   RNG HAL module driver.
   *          This file provides firmware functions to manage the following 
   *          functionalities of the Random Number Generator (RNG) peripheral:
@@ -29,7 +29,7 @@
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; COPYRIGHT(c) 2014 STMicroelectronics</center></h2>
+  * <h2><center>&copy; COPYRIGHT(c) 2015 STMicroelectronics</center></h2>
   *
   * Redistribution and use in source and binary forms, with or without modification,
   * are permitted provided that the following conditions are met:
@@ -129,6 +129,8 @@ HAL_StatusTypeDef HAL_RNG_Init(RNG_HandleTypeDef *hrng)
   
   if(hrng->State == HAL_RNG_STATE_RESET)
   {  
+    /* Allocate lock resource and initialize it */
+    hrng->Lock = HAL_UNLOCKED;
     /* Init the low level hardware */
     HAL_RNG_MspInit(hrng);
   }
@@ -180,12 +182,6 @@ HAL_StatusTypeDef HAL_RNG_DeInit(RNG_HandleTypeDef *hrng)
   return HAL_OK;
 }
 
-// [ILG]
-#if defined ( __GNUC__ )
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-#endif
-
 /**
   * @brief  Initializes the RNG MSP.
   * @param  hrng: pointer to a RNG_HandleTypeDef structure that contains
@@ -211,11 +207,6 @@ __weak void HAL_RNG_MspDeInit(RNG_HandleTypeDef *hrng)
             function HAL_RNG_MspDeInit must be implemented in the user file.
    */
 }
-
-// [ILG]
-#if defined ( __GNUC__ )
-#pragma GCC diagnostic pop
-#endif
 
 /**
   * @}
@@ -387,12 +378,6 @@ void HAL_RNG_IRQHandler(RNG_HandleTypeDef *hrng)
   }
 } 
 
-// [ILG]
-#if defined ( __GNUC__ )
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-#endif
-
 /**
   * @brief  Returns generated random number in polling mode (Obsolete)
   *         Use HAL_RNG_GenerateRandomNumber() API instead.
@@ -476,12 +461,6 @@ __weak void HAL_RNG_ErrorCallback(RNG_HandleTypeDef *hrng)
             function HAL_RNG_ErrorCallback must be implemented in the user file.
    */
 }
- 
-// [ILG]
-#if defined ( __GNUC__ )
-#pragma GCC diagnostic pop
-#endif
-
 /**
   * @}
   */ 

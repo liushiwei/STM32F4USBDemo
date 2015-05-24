@@ -2,8 +2,8 @@
   ******************************************************************************
   * @file    stm32f4xx_hal_spi.c
   * @author  MCD Application Team
-  * @version V1.2.0
-  * @date    26-December-2014
+  * @version V1.3.0
+  * @date    09-March-2015
   * @brief   SPI HAL module driver.
   *    
   *          This file provides firmware functions to manage the following 
@@ -59,7 +59,7 @@
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; COPYRIGHT(c) 2014 STMicroelectronics</center></h2>
+  * <h2><center>&copy; COPYRIGHT(c) 2015 STMicroelectronics</center></h2>
   *
   * Redistribution and use in source and binary forms, with or without modification,
   * are permitted provided that the following conditions are met:
@@ -114,6 +114,7 @@ static void SPI_TxISR(SPI_HandleTypeDef *hspi);
 static void SPI_RxCloseIRQHandler(SPI_HandleTypeDef *hspi);
 static void SPI_2LinesRxISR(SPI_HandleTypeDef *hspi);
 static void SPI_RxISR(SPI_HandleTypeDef *hspi);
+static void SPI_DMAEndTransmitReceive(SPI_HandleTypeDef *hspi); 
 static void SPI_DMATransmitCplt(DMA_HandleTypeDef *hdma);
 static void SPI_DMAReceiveCplt(DMA_HandleTypeDef *hdma);
 static void SPI_DMATransmitReceiveCplt(DMA_HandleTypeDef *hdma);
@@ -194,6 +195,8 @@ HAL_StatusTypeDef HAL_SPI_Init(SPI_HandleTypeDef *hspi)
 
   if(hspi->State == HAL_SPI_STATE_RESET)
   {
+    /* Allocate lock resource and initialize it */
+    hspi->Lock = HAL_UNLOCKED;
     /* Init the low level hardware : GPIO, CLOCK, NVIC... */
     HAL_SPI_MspInit(hspi);
   }
@@ -255,12 +258,6 @@ HAL_StatusTypeDef HAL_SPI_DeInit(SPI_HandleTypeDef *hspi)
   return HAL_OK;
 }
 
-// [ILG]
-#if defined ( __GNUC__ )
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-#endif
-
 /**
   * @brief SPI MSP Init
   * @param  hspi: pointer to a SPI_HandleTypeDef structure that contains
@@ -286,11 +283,6 @@ HAL_StatusTypeDef HAL_SPI_DeInit(SPI_HandleTypeDef *hspi)
             the HAL_SPI_MspDeInit could be implemented in the user file
    */
 }
-
- // [ILG]
- #if defined ( __GNUC__ )
- #pragma GCC diagnostic pop
- #endif
 
 /**
   * @}
@@ -321,27 +313,8 @@ HAL_StatusTypeDef HAL_SPI_DeInit(SPI_HandleTypeDef *hspi)
            will be executed respectively at the end of the transmit or Receive process
            The HAL_SPI_ErrorCallback()user callback will be executed when a communication error is detected
 
-    (#) Blocking mode APIs are :
-        (++) HAL_SPI_Transmit()in 1Line (simplex) and 2Lines (full duplex) mode
-        (++) HAL_SPI_Receive() in 1Line (simplex) and 2Lines (full duplex) mode
-        (++) HAL_SPI_TransmitReceive() in full duplex mode
-
-    (#) Non Blocking mode API's with Interrupt are :
-        (++) HAL_SPI_Transmit_IT()in 1Line (simplex) and 2Lines (full duplex) mode
-        (++) HAL_SPI_Receive_IT() in 1Line (simplex) and 2Lines (full duplex) mode
-        (++) HAL_SPI_TransmitReceive_IT()in full duplex mode
-        (++) HAL_SPI_IRQHandler()
-
-    (#) Non Blocking mode functions with DMA are :
-        (++) HAL_SPI_Transmit_DMA()in 1Line (simplex) and 2Lines (full duplex) mode
-        (++) HAL_SPI_Receive_DMA() in 1Line (simplex) and 2Lines (full duplex) mode
-        (++) HAL_SPI_TransmitReceie_DMA() in full duplex mode
-
-    (#) A set of Transfer Complete Callbacks are provided in non Blocking mode:
-        (++) HAL_SPI_TxCpltCallback()
-        (++) HAL_SPI_RxCpltCallback()
-        (++) HAL_SPI_ErrorCallback()
-        (++) HAL_SPI_TxRxCpltCallback()
+    (#) APIs provided for these 2 transfer modes (Blocking mode or Non blocking mode using either Interrupt or DMA)
+        exist for 1Line (simplex) and 2Lines (full duplex) modes.
 
 @endverbatim
   * @{
@@ -489,12 +462,6 @@ HAL_StatusTypeDef HAL_SPI_Transmit(SPI_HandleTypeDef *hspi, uint8_t *pData, uint
   }
 }
 
-// [ILG]
-#if defined ( __GNUC__ )
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wconversion"
-#endif
-
 /**
   * @brief  Receive an amount of data in blocking mode 
   * @param  hspi: pointer to a SPI_HandleTypeDef structure that contains
@@ -506,17 +473,7 @@ HAL_StatusTypeDef HAL_SPI_Transmit(SPI_HandleTypeDef *hspi, uint8_t *pData, uint
   */
 HAL_StatusTypeDef HAL_SPI_Receive(SPI_HandleTypeDef *hspi, uint8_t *pData, uint16_t Size, uint32_t Timeout)
 {
-  // [ILG]
-  #if defined ( __GNUC__ )
-  #pragma GCC diagnostic push
-  #pragma GCC diagnostic ignored "-Wunused-but-set-variable"
-  #endif
   __IO uint16_t tmpreg;
-  // [ILG]
-  #if defined ( __GNUC__ )
-  #pragma GCC diagnostic pop
-  #endif
-
   uint32_t tmp = 0;
 
   if(hspi->State == HAL_SPI_STATE_READY)
@@ -692,17 +649,7 @@ HAL_StatusTypeDef HAL_SPI_Receive(SPI_HandleTypeDef *hspi, uint8_t *pData, uint1
   */
 HAL_StatusTypeDef HAL_SPI_TransmitReceive(SPI_HandleTypeDef *hspi, uint8_t *pTxData, uint8_t *pRxData, uint16_t Size, uint32_t Timeout)
 {
-  // [ILG]
-  #if defined ( __GNUC__ )
-  #pragma GCC diagnostic push
-  #pragma GCC diagnostic ignored "-Wunused-but-set-variable"
-  #endif
   __IO uint16_t tmpreg;
-  // [ILG]
-  #if defined ( __GNUC__ )
-  #pragma GCC diagnostic pop
-  #endif
-
   uint32_t tmpstate = 0, tmp = 0;
   
   tmpstate = hspi->State; 
@@ -943,11 +890,6 @@ HAL_StatusTypeDef HAL_SPI_TransmitReceive(SPI_HandleTypeDef *hspi, uint8_t *pTxD
     return HAL_BUSY;
   }
 }
-
-// [ILG]
-#if defined ( __GNUC__ )
-#pragma GCC diagnostic pop
-#endif
 
 /**
   * @brief  Transmit an amount of data in no-blocking mode with Interrupt
@@ -1238,9 +1180,6 @@ HAL_StatusTypeDef HAL_SPI_Transmit_DMA(SPI_HandleTypeDef *hspi, uint8_t *pData, 
     /* Enable the Tx DMA Stream */
     HAL_DMA_Start_IT(hspi->hdmatx, (uint32_t)hspi->pTxBuffPtr, (uint32_t)&hspi->Instance->DR, hspi->TxXferCount);
 
-    /* Enable Tx DMA Request */
-    hspi->Instance->CR2 |= SPI_CR2_TXDMAEN;
-
     /* Process Unlocked */
     __HAL_UNLOCK(hspi);
 
@@ -1250,6 +1189,9 @@ HAL_StatusTypeDef HAL_SPI_Transmit_DMA(SPI_HandleTypeDef *hspi, uint8_t *pData, 
       /* Enable SPI peripheral */
       __HAL_SPI_ENABLE(hspi);
     }
+
+    /* Enable Tx DMA Request */
+    hspi->Instance->CR2 |= SPI_CR2_TXDMAEN;
 
     return HAL_OK;
   }
@@ -1262,7 +1204,7 @@ HAL_StatusTypeDef HAL_SPI_Transmit_DMA(SPI_HandleTypeDef *hspi, uint8_t *pData, 
 /**
   * @brief  Receive an amount of data in no-blocking mode with DMA 
   * @param  hspi: pointer to a SPI_HandleTypeDef structure that contains
-  *                the configuration information for SPI module.
+  *         the configuration information for SPI module.
   * @param  pData: pointer to data buffer
   * @note  When the CRC feature is enabled the pData Length must be Size + 1. 
   * @param  Size: amount of data to be sent
@@ -1326,9 +1268,6 @@ HAL_StatusTypeDef HAL_SPI_Receive_DMA(SPI_HandleTypeDef *hspi, uint8_t *pData, u
     /* Enable the Rx DMA Stream */
     HAL_DMA_Start_IT(hspi->hdmarx, (uint32_t)&hspi->Instance->DR, (uint32_t)hspi->pRxBuffPtr, hspi->RxXferCount);
 
-    /* Enable Rx DMA Request */  
-    hspi->Instance->CR2 |= SPI_CR2_RXDMAEN;  
-
     /* Process Unlocked */
     __HAL_UNLOCK(hspi);
 
@@ -1338,6 +1277,9 @@ HAL_StatusTypeDef HAL_SPI_Receive_DMA(SPI_HandleTypeDef *hspi, uint8_t *pData, u
       /* Enable SPI peripheral */
       __HAL_SPI_ENABLE(hspi);
     }
+
+    /* Enable Rx DMA Request */  
+    hspi->Instance->CR2 |= SPI_CR2_RXDMAEN;
 
     return HAL_OK;
   }
@@ -1444,6 +1386,9 @@ HAL_StatusTypeDef HAL_SPI_TransmitReceive_DMA(SPI_HandleTypeDef *hspi, uint8_t *
     /* Enable the Tx DMA Stream */
     HAL_DMA_Start_IT(hspi->hdmatx, (uint32_t)hspi->pTxBuffPtr, (uint32_t)&hspi->Instance->DR, hspi->TxXferCount);
 
+    /* Process Unlocked */
+    __HAL_UNLOCK(hspi);
+
     /* Check if the SPI is already enabled */ 
     if((hspi->Instance->CR1 &SPI_CR1_SPE) != SPI_CR1_SPE)
     {
@@ -1454,8 +1399,6 @@ HAL_StatusTypeDef HAL_SPI_TransmitReceive_DMA(SPI_HandleTypeDef *hspi, uint8_t *
     /* Enable Tx DMA Request */  
     hspi->Instance->CR2 |= SPI_CR2_TXDMAEN;
 
-    /* Process Unlocked */
-    __HAL_UNLOCK(hspi);
     return HAL_OK;
   }
   else
@@ -1610,12 +1553,6 @@ void HAL_SPI_IRQHandler(SPI_HandleTypeDef *hspi)
   }
 }
 
-// [ILG]
-#if defined ( __GNUC__ )
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-#endif
-
 /**
   * @brief Tx Transfer completed callbacks
   * @param  hspi: pointer to a SPI_HandleTypeDef structure that contains
@@ -1708,11 +1645,6 @@ __weak void HAL_SPI_TxRxHalfCpltCallback(SPI_HandleTypeDef *hspi)
             and user can use HAL_SPI_GetError() API to check the latest error occurred.
    */
 }
-
- // [ILG]
- #if defined ( __GNUC__ )
- #pragma GCC diagnostic pop
- #endif
 
 /**
   * @}
@@ -1852,12 +1784,6 @@ static void SPI_TxISR(SPI_HandleTypeDef *hspi)
   }
 }
 
-// [ILG]
-#if defined ( __GNUC__ )
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wconversion"
-#endif
-
 /**
   * @brief  Interrupt Handler to close Rx transfer 
   * @param  hspi: pointer to a SPI_HandleTypeDef structure that contains
@@ -1866,16 +1792,7 @@ static void SPI_TxISR(SPI_HandleTypeDef *hspi)
   */
 static void SPI_RxCloseIRQHandler(SPI_HandleTypeDef *hspi)
 {
-  // [ILG]
-  #if defined ( __GNUC__ )
-  #pragma GCC diagnostic push
-  #pragma GCC diagnostic ignored "-Wunused-but-set-variable"
-  #endif
   __IO uint16_t tmpreg;
-  // [ILG]
-  #if defined ( __GNUC__ )
-  #pragma GCC diagnostic pop
-  #endif
 
   if(hspi->Init.CRCCalculation == SPI_CRCCALCULATION_ENABLE)
   {
@@ -2065,61 +1982,59 @@ static void SPI_DMATransmitCplt(DMA_HandleTypeDef *hdma)
   */
 static void SPI_DMAReceiveCplt(DMA_HandleTypeDef *hdma)
 {
-  // [ILG]
-  #if defined ( __GNUC__ )
-  #pragma GCC diagnostic push
-  #pragma GCC diagnostic ignored "-Wunused-but-set-variable"
-  #endif
   __IO uint16_t tmpreg;
-  // [ILG]
-  #if defined ( __GNUC__ )
-  #pragma GCC diagnostic pop
-  #endif
-
+  
   SPI_HandleTypeDef* hspi = ( SPI_HandleTypeDef* )((DMA_HandleTypeDef* )hdma)->Parent;
   /* DMA Normal mode */
   if((hdma->Instance->CR & DMA_SxCR_CIRC) == 0)
   {
-    if((hspi->Init.Mode == SPI_MODE_MASTER)&&((hspi->Init.Direction == SPI_DIRECTION_1LINE)||(hspi->Init.Direction == SPI_DIRECTION_2LINES_RXONLY)))
+    if((hspi->Init.Direction == SPI_DIRECTION_2LINES)&&(hspi->Init.Mode == SPI_MODE_MASTER))
     {
-      /* Disable SPI peripheral */
-      __HAL_SPI_DISABLE(hspi);
+       SPI_DMAEndTransmitReceive(hspi);  
+    }
+    /* SPI_DIRECTION_1LINE or SPI_DIRECTION_2LINES_RXONLY */
+    else
+    {
+      if((hspi->Init.Mode == SPI_MODE_MASTER)&&((hspi->Init.Direction == SPI_DIRECTION_1LINE)||(hspi->Init.Direction == SPI_DIRECTION_2LINES_RXONLY)))
+      {
+        /* Disable SPI peripheral */
+        __HAL_SPI_DISABLE(hspi);
+      }
+      
+      /* Disable Rx DMA Request */
+      hspi->Instance->CR2 &= (uint32_t)(~SPI_CR2_RXDMAEN);
+      
+      hspi->RxXferCount = 0;
+      
+      /* Reset CRC Calculation */
+      if(hspi->Init.CRCCalculation == SPI_CRCCALCULATION_ENABLE)
+      {
+        /* Wait until RXNE flag is set to send data */
+        if(SPI_WaitOnFlagUntilTimeout(hspi, SPI_FLAG_RXNE, RESET, SPI_TIMEOUT_VALUE) != HAL_OK)
+        {
+          hspi->ErrorCode |= HAL_SPI_ERROR_FLAG;
+        }
+        
+        /* Read CRC */
+        tmpreg = hspi->Instance->DR;
+        UNUSED(tmpreg);
+        
+        /* Wait until RXNE flag is set */
+        if(SPI_WaitOnFlagUntilTimeout(hspi, SPI_FLAG_RXNE, SET, SPI_TIMEOUT_VALUE) != HAL_OK)
+        {
+          hspi->ErrorCode |= HAL_SPI_ERROR_FLAG;
+        }
+        
+        /* Check if CRC error occurred */
+        if(__HAL_SPI_GET_FLAG(hspi, SPI_FLAG_CRCERR) != RESET)
+        {
+          hspi->ErrorCode |= HAL_SPI_ERROR_CRC;
+          __HAL_SPI_CLEAR_CRCERRFLAG(hspi);
+        }
+      }
     }
     
-    /* Disable Rx DMA Request */
-    hspi->Instance->CR2 &= (uint32_t)(~SPI_CR2_RXDMAEN);
-    /* Disable Tx DMA Request (done by default to handle the case Master RX direction 2 lines) */
-    hspi->Instance->CR2 &= (uint32_t)(~SPI_CR2_TXDMAEN);
-    
-    hspi->RxXferCount = 0;
     hspi->State = HAL_SPI_STATE_READY;
-    
-    /* Reset CRC Calculation */
-    if(hspi->Init.CRCCalculation == SPI_CRCCALCULATION_ENABLE)
-    {
-      /* Wait until RXNE flag is set to send data */
-      if(SPI_WaitOnFlagUntilTimeout(hspi, SPI_FLAG_RXNE, RESET, SPI_TIMEOUT_VALUE) != HAL_OK)
-      {
-        hspi->ErrorCode |= HAL_SPI_ERROR_FLAG;
-      }
-      
-      /* Read CRC */
-      tmpreg = hspi->Instance->DR;
-      UNUSED(tmpreg);
-      
-      /* Wait until RXNE flag is set */
-      if(SPI_WaitOnFlagUntilTimeout(hspi, SPI_FLAG_RXNE, SET, SPI_TIMEOUT_VALUE) != HAL_OK)
-      {
-        hspi->ErrorCode |= HAL_SPI_ERROR_FLAG;
-      }
-      
-      /* Check if CRC error occurred */
-      if(__HAL_SPI_GET_FLAG(hspi, SPI_FLAG_CRCERR) != RESET)
-      {
-        hspi->ErrorCode |= HAL_SPI_ERROR_CRC;
-        __HAL_SPI_CLEAR_CRCERRFLAG(hspi);
-      }
-    }
     
     /* Check if Errors has been detected during transfer */
     if(hspi->ErrorCode != HAL_SPI_ERROR_NONE)
@@ -2138,6 +2053,61 @@ static void SPI_DMAReceiveCplt(DMA_HandleTypeDef *hdma)
 }
 
 /**
+  * @brief End DMA SPI transmit receive process 
+  * @param  hspi: pointer to a SPI_HandleTypeDef structure that contains
+  *                the configuration information for SPI module.
+  * @retval None
+  */
+static void SPI_DMAEndTransmitReceive(SPI_HandleTypeDef *hspi)   
+{
+  __IO uint16_t tmpreg;
+  
+  /* Reset CRC Calculation */
+  if(hspi->Init.CRCCalculation == SPI_CRCCALCULATION_ENABLE)
+  {
+    /* Check if CRC is done on going (RXNE flag set) */
+    if(SPI_WaitOnFlagUntilTimeout(hspi, SPI_FLAG_RXNE, SET, SPI_TIMEOUT_VALUE) == HAL_OK)
+    {
+      /* Wait until RXNE flag is set to send data */
+      if(SPI_WaitOnFlagUntilTimeout(hspi, SPI_FLAG_RXNE, RESET, SPI_TIMEOUT_VALUE) != HAL_OK)
+      {
+        hspi->ErrorCode |= HAL_SPI_ERROR_FLAG;
+      }
+    }
+    /* Read CRC */
+    tmpreg = hspi->Instance->DR;
+    UNUSED(tmpreg);
+    
+    /* Check if CRC error occurred */
+    if(__HAL_SPI_GET_FLAG(hspi, SPI_FLAG_CRCERR) != RESET)
+    {
+      hspi->ErrorCode |= HAL_SPI_ERROR_CRC;
+      __HAL_SPI_CLEAR_CRCERRFLAG(hspi);
+    }
+  }
+  
+  /* Wait until TXE flag is set to send data */
+  if(SPI_WaitOnFlagUntilTimeout(hspi, SPI_FLAG_TXE, RESET, SPI_TIMEOUT_VALUE) != HAL_OK)
+  {
+    hspi->ErrorCode |= HAL_SPI_ERROR_FLAG;
+  }
+  /* Disable Tx DMA Request */
+  hspi->Instance->CR2 &= (uint32_t)(~SPI_CR2_TXDMAEN);
+  
+  /* Wait until Busy flag is reset before disabling SPI */
+  if(SPI_WaitOnFlagUntilTimeout(hspi, SPI_FLAG_BSY, SET, SPI_TIMEOUT_VALUE) != HAL_OK)
+  {
+    hspi->ErrorCode |= HAL_SPI_ERROR_FLAG;
+  }
+  
+  /* Disable Rx DMA Request */
+  hspi->Instance->CR2 &= (uint32_t)(~SPI_CR2_RXDMAEN);
+  
+  hspi->TxXferCount = 0;
+  hspi->RxXferCount = 0;
+}
+
+/**
   * @brief DMA SPI transmit receive process complete callback 
   * @param  hdma: pointer to a DMA_HandleTypeDef structure that contains
   *                the configuration information for the specified DMA module.
@@ -2145,66 +2115,14 @@ static void SPI_DMAReceiveCplt(DMA_HandleTypeDef *hdma)
   */
 static void SPI_DMATransmitReceiveCplt(DMA_HandleTypeDef *hdma)   
 {
-  // [ILG]
-  #if defined ( __GNUC__ )
-  #pragma GCC diagnostic push
-  #pragma GCC diagnostic ignored "-Wunused-but-set-variable"
-  #endif
   __IO uint16_t tmpreg;
-  // [ILG]
-  #if defined ( __GNUC__ )
-  #pragma GCC diagnostic pop
-  #endif
-
+  
   SPI_HandleTypeDef* hspi = ( SPI_HandleTypeDef* )((DMA_HandleTypeDef* )hdma)->Parent;
   if((hdma->Instance->CR & DMA_SxCR_CIRC) == 0)
-  {
-    /* Reset CRC Calculation */
-    if(hspi->Init.CRCCalculation == SPI_CRCCALCULATION_ENABLE)
-    {
-      /* Check if CRC is done on going (RXNE flag set) */
-      if(SPI_WaitOnFlagUntilTimeout(hspi, SPI_FLAG_RXNE, SET, SPI_TIMEOUT_VALUE) == HAL_OK)
-      {
-        /* Wait until RXNE flag is set to send data */
-        if(SPI_WaitOnFlagUntilTimeout(hspi, SPI_FLAG_RXNE, RESET, SPI_TIMEOUT_VALUE) != HAL_OK)
-        {
-          hspi->ErrorCode |= HAL_SPI_ERROR_FLAG;
-        }
-      }
-      /* Read CRC */
-      tmpreg = hspi->Instance->DR;
-      UNUSED(tmpreg);
-      
-      /* Check if CRC error occurred */
-      if(__HAL_SPI_GET_FLAG(hspi, SPI_FLAG_CRCERR) != RESET)
-      {
-        hspi->ErrorCode |= HAL_SPI_ERROR_CRC;
-        __HAL_SPI_CLEAR_CRCERRFLAG(hspi);
-      }
-    }
-
-    /* Wait until TXE flag is set to send data */
-    if(SPI_WaitOnFlagUntilTimeout(hspi, SPI_FLAG_TXE, RESET, SPI_TIMEOUT_VALUE) != HAL_OK)
-    {
-      hspi->ErrorCode |= HAL_SPI_ERROR_FLAG;
-    }
-    /* Disable Tx DMA Request */
-    hspi->Instance->CR2 &= (uint32_t)(~SPI_CR2_TXDMAEN);
+  { /**/
+    SPI_DMAEndTransmitReceive(hspi);
     
-    /* Wait until Busy flag is reset before disabling SPI */
-    if(SPI_WaitOnFlagUntilTimeout(hspi, SPI_FLAG_BSY, SET, SPI_TIMEOUT_VALUE) != HAL_OK)
-    {
-      hspi->ErrorCode |= HAL_SPI_ERROR_FLAG;
-    }
-    
-    /* Disable Rx DMA Request */
-    hspi->Instance->CR2 &= (uint32_t)(~SPI_CR2_RXDMAEN);
-    
-    hspi->TxXferCount = 0;
-    hspi->RxXferCount = 0;
-    
-    hspi->State = HAL_SPI_STATE_READY;
-    
+    hspi->State = HAL_SPI_STATE_READY;    
     
     /* Check if Errors has been detected during transfer */
     if(hspi->ErrorCode != HAL_SPI_ERROR_NONE)
@@ -2260,11 +2178,6 @@ static void SPI_DMAHalfTransmitReceiveCplt(DMA_HandleTypeDef *hdma)
 
   HAL_SPI_TxRxHalfCpltCallback(hspi);
 }
-
-// [ILG]
-#if defined ( __GNUC__ )
-#pragma GCC diagnostic pop
-#endif
 
 /**
   * @brief DMA SPI communication error callback 

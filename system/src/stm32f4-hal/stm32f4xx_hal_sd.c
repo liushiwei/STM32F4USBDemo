@@ -2,8 +2,8 @@
   ******************************************************************************
   * @file    stm32f4xx_hal_sd.c
   * @author  MCD Application Team
-  * @version V1.2.0
-  * @date    26-December-2014
+  * @version V1.3.0
+  * @date    09-March-2015
   * @brief   SD card HAL module driver.
   *          This file provides firmware functions to manage the following 
   *          functionalities of the Secure Digital (SD) peripheral:
@@ -149,7 +149,7 @@
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; COPYRIGHT(c) 2014 STMicroelectronics</center></h2>
+  * <h2><center>&copy; COPYRIGHT(c) 2015 STMicroelectronics</center></h2>
   *
   * Redistribution and use in source and binary forms, with or without modification,
   * are permitted provided that the following conditions are met:
@@ -340,6 +340,8 @@ HAL_SD_ErrorTypedef HAL_SD_Init(SD_HandleTypeDef *hsd, HAL_SD_CardInfoTypedef *S
   __IO HAL_SD_ErrorTypedef errorstate = SD_OK;
   SD_InitTypeDef tmpinit;
   
+  /* Allocate lock resource and initialize it */
+  hsd->Lock = HAL_UNLOCKED;
   /* Initialize the low level hardware (MSP) */
   HAL_SD_MspInit(hsd);
   
@@ -402,11 +404,6 @@ HAL_StatusTypeDef HAL_SD_DeInit(SD_HandleTypeDef *hsd)
   return HAL_OK;
 }
 
-// [ILG]
-#if defined ( __GNUC__ )
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-#endif
 
 /**
   * @brief  Initializes the SD MSP.
@@ -431,11 +428,6 @@ __weak void HAL_SD_MspDeInit(SD_HandleTypeDef *hsd)
             the HAL_SD_MspDeInit could be implemented in the user file
    */
 }
-
-// [ILG]
-#if defined ( __GNUC__ )
-#pragma GCC diagnostic pop
-#endif
 
 /**
   * @}
@@ -534,7 +526,11 @@ HAL_SD_ErrorTypedef HAL_SD_ReadBlocks(SD_HandleTypeDef *hsd, uint32_t *pReadBuff
     }
     
     /* Poll on SDIO flags */
+#ifdef SDIO_STA_STBITERR
     while(!__HAL_SD_SDIO_GET_FLAG(hsd, SDIO_FLAG_RXOVERR | SDIO_FLAG_DCRCFAIL | SDIO_FLAG_DTIMEOUT | SDIO_FLAG_DATAEND | SDIO_FLAG_STBITERR))
+#else /* SDIO_STA_STBITERR not defined */
+    while(!__HAL_SD_SDIO_GET_FLAG(hsd, SDIO_FLAG_RXOVERR | SDIO_FLAG_DCRCFAIL | SDIO_FLAG_DTIMEOUT | SDIO_FLAG_DATAEND))
+#endif /* SDIO_STA_STBITERR */
     {
       if (__HAL_SD_SDIO_GET_FLAG(hsd, SDIO_FLAG_RXFIFOHF))
       {
@@ -559,7 +555,11 @@ HAL_SD_ErrorTypedef HAL_SD_ReadBlocks(SD_HandleTypeDef *hsd, uint32_t *pReadBuff
     }    
     
     /* In case of single block transfer, no need of stop transfer at all */
+#ifdef SDIO_STA_STBITERR
     while(!__HAL_SD_SDIO_GET_FLAG(hsd, SDIO_FLAG_RXOVERR | SDIO_FLAG_DCRCFAIL | SDIO_FLAG_DTIMEOUT | SDIO_FLAG_DBCKEND | SDIO_FLAG_STBITERR))
+#else /* SDIO_STA_STBITERR not defined */
+    while(!__HAL_SD_SDIO_GET_FLAG(hsd, SDIO_FLAG_RXOVERR | SDIO_FLAG_DCRCFAIL | SDIO_FLAG_DTIMEOUT | SDIO_FLAG_DBCKEND))      
+#endif /* SDIO_STA_STBITERR */
     {
       if (__HAL_SD_SDIO_GET_FLAG(hsd, SDIO_FLAG_RXFIFOHF))
       {
@@ -611,6 +611,7 @@ HAL_SD_ErrorTypedef HAL_SD_ReadBlocks(SD_HandleTypeDef *hsd, uint32_t *pReadBuff
     
     return errorstate;
   }
+#ifdef SDIO_STA_STBITERR
   else if (__HAL_SD_SDIO_GET_FLAG(hsd, SDIO_FLAG_STBITERR))
   {
     __HAL_SD_SDIO_CLEAR_FLAG(hsd, SDIO_FLAG_STBITERR);
@@ -619,6 +620,7 @@ HAL_SD_ErrorTypedef HAL_SD_ReadBlocks(SD_HandleTypeDef *hsd, uint32_t *pReadBuff
     
     return errorstate;
   }
+#endif /* SDIO_STA_STBITERR */ 
   else
   {
     /* No error flag set */
@@ -729,7 +731,11 @@ HAL_SD_ErrorTypedef HAL_SD_WriteBlocks(SD_HandleTypeDef *hsd, uint32_t *pWriteBu
   /* Write block(s) in polling mode */
   if(NumberOfBlocks > 1)
   {
+#ifdef SDIO_STA_STBITERR
     while(!__HAL_SD_SDIO_GET_FLAG(hsd, SDIO_FLAG_TXUNDERR | SDIO_FLAG_DCRCFAIL | SDIO_FLAG_DTIMEOUT | SDIO_FLAG_DATAEND | SDIO_FLAG_STBITERR))
+#else /* SDIO_STA_STBITERR not defined */
+    while(!__HAL_SD_SDIO_GET_FLAG(hsd, SDIO_FLAG_TXUNDERR | SDIO_FLAG_DCRCFAIL | SDIO_FLAG_DTIMEOUT | SDIO_FLAG_DATAEND))
+#endif /* SDIO_STA_STBITERR */     
     {
       if (__HAL_SD_SDIO_GET_FLAG(hsd, SDIO_FLAG_TXFIFOHE))
       {
@@ -761,8 +767,12 @@ HAL_SD_ErrorTypedef HAL_SD_WriteBlocks(SD_HandleTypeDef *hsd, uint32_t *pWriteBu
   }
   else
   {
-    /* In case of single data block transfer no need of stop command at all */ 
+    /* In case of single data block transfer no need of stop command at all */
+#ifdef SDIO_STA_STBITERR
     while(!__HAL_SD_SDIO_GET_FLAG(hsd, SDIO_FLAG_TXUNDERR | SDIO_FLAG_DCRCFAIL | SDIO_FLAG_DTIMEOUT | SDIO_FLAG_DBCKEND | SDIO_FLAG_STBITERR))
+#else /* SDIO_STA_STBITERR not defined */
+    while(!__HAL_SD_SDIO_GET_FLAG(hsd, SDIO_FLAG_TXUNDERR | SDIO_FLAG_DCRCFAIL | SDIO_FLAG_DTIMEOUT | SDIO_FLAG_DBCKEND))
+#endif /* SDIO_STA_STBITERR */
     {
       if (__HAL_SD_SDIO_GET_FLAG(hsd, SDIO_FLAG_TXFIFOHE))
       {
@@ -829,6 +839,7 @@ HAL_SD_ErrorTypedef HAL_SD_WriteBlocks(SD_HandleTypeDef *hsd, uint32_t *pWriteBu
     
     return errorstate;
   }
+#ifdef SDIO_STA_STBITERR
   else if (__HAL_SD_SDIO_GET_FLAG(hsd, SDIO_FLAG_STBITERR))
   {
     __HAL_SD_SDIO_CLEAR_FLAG(hsd, SDIO_FLAG_STBITERR);
@@ -837,6 +848,7 @@ HAL_SD_ErrorTypedef HAL_SD_WriteBlocks(SD_HandleTypeDef *hsd, uint32_t *pWriteBu
     
     return errorstate;
   }
+#endif /* SDIO_STA_STBITERR */
   else
   {
     /* No error flag set */
@@ -894,11 +906,18 @@ HAL_SD_ErrorTypedef HAL_SD_ReadBlocks_DMA(SD_HandleTypeDef *hsd, uint32_t *pRead
   }
   
   /* Enable transfer interrupts */
+#ifdef SDIO_STA_STBITERR
   __HAL_SD_SDIO_ENABLE_IT(hsd, (SDIO_IT_DCRCFAIL |\
                                 SDIO_IT_DTIMEOUT |\
                                 SDIO_IT_DATAEND  |\
                                 SDIO_IT_RXOVERR  |\
                                 SDIO_IT_STBITERR));
+#else /* SDIO_STA_STBITERR not defined */
+  __HAL_SD_SDIO_ENABLE_IT(hsd, (SDIO_IT_DCRCFAIL |\
+                                SDIO_IT_DTIMEOUT |\
+                                SDIO_IT_DATAEND  |\
+                                SDIO_IT_RXOVERR));
+#endif /* SDIO_STA_STBITERR */
   
   /* Enable SDIO DMA transfer */
   __HAL_SD_SDIO_DMA_ENABLE();
@@ -1011,11 +1030,18 @@ HAL_SD_ErrorTypedef HAL_SD_WriteBlocks_DMA(SD_HandleTypeDef *hsd, uint32_t *pWri
   }  
   
   /* Enable transfer interrupts */
+#ifdef SDIO_STA_STBITERR
   __HAL_SD_SDIO_ENABLE_IT(hsd, (SDIO_IT_DCRCFAIL |\
                                 SDIO_IT_DTIMEOUT |\
                                 SDIO_IT_DATAEND  |\
                                 SDIO_IT_TXUNDERR |\
-                                SDIO_IT_STBITERR)); 
+                                SDIO_IT_STBITERR));
+#else /* SDIO_STA_STBITERR not defined */
+  __HAL_SD_SDIO_ENABLE_IT(hsd, (SDIO_IT_DCRCFAIL |\
+                                SDIO_IT_DTIMEOUT |\
+                                SDIO_IT_DATAEND  |\
+                                SDIO_IT_TXUNDERR));
+#endif /* SDIO_STA_STBITERR */
   
   /* Configure DMA user callbacks */
   hsd->hdmatx->XferCpltCallback  = SD_DMA_TxCplt;
@@ -1377,6 +1403,7 @@ void HAL_SD_IRQHandler(SD_HandleTypeDef *hsd)
     
     HAL_SD_XferErrorCallback(hsd);
   }
+#ifdef SDIO_STA_STBITERR
   else if (__HAL_SD_SDIO_GET_FLAG(hsd, SDIO_IT_STBITERR))
   {
     __HAL_SD_SDIO_CLEAR_FLAG(hsd, SDIO_FLAG_STBITERR);
@@ -1385,22 +1412,24 @@ void HAL_SD_IRQHandler(SD_HandleTypeDef *hsd)
     
     HAL_SD_XferErrorCallback(hsd);
   }
+#endif /* SDIO_STA_STBITERR */
   else
   {
     /* No error flag set */
   }
 
   /* Disable all SDIO peripheral interrupt sources */
+#ifdef SDIO_STA_STBITERR
   __HAL_SD_SDIO_DISABLE_IT(hsd, SDIO_IT_DCRCFAIL | SDIO_IT_DTIMEOUT | SDIO_IT_DATAEND  |\
                                 SDIO_IT_TXFIFOHE | SDIO_IT_RXFIFOHF | SDIO_IT_TXUNDERR |\
-                                SDIO_IT_RXOVERR  | SDIO_IT_STBITERR);                               
+                                SDIO_IT_RXOVERR  | SDIO_IT_STBITERR);
+#else /* SDIO_STA_STBITERR not defined */
+  __HAL_SD_SDIO_DISABLE_IT(hsd, SDIO_IT_DCRCFAIL | SDIO_IT_DTIMEOUT | SDIO_IT_DATAEND  |\
+                                SDIO_IT_TXFIFOHE | SDIO_IT_RXFIFOHF | SDIO_IT_TXUNDERR |\
+                                SDIO_IT_RXOVERR);
+#endif /* SDIO_STA_STBITERR */
 }
 
-// [ILG]
-#if defined ( __GNUC__ )
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-#endif
 
 /**
   * @brief  SD end of transfer callback.
@@ -1478,11 +1507,6 @@ __weak void HAL_SD_DMA_TxErrorCallback(DMA_HandleTypeDef *hdma)
    */ 
 }
 
-// [ILG]
-#if defined ( __GNUC__ )
-#pragma GCC diagnostic pop
-#endif
-
 /**
   * @}
   */
@@ -1501,13 +1525,6 @@ __weak void HAL_SD_DMA_TxErrorCallback(DMA_HandleTypeDef *hdma)
 @endverbatim
   * @{
   */
-
-// [ILG]
-#if defined ( __GNUC__ )
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wconversion"
-#pragma GCC diagnostic ignored "-Wsign-conversion"
-#endif
 
 /**
   * @brief  Returns information about specific card.
@@ -1721,11 +1738,6 @@ HAL_SD_ErrorTypedef HAL_SD_Get_CardInfo(SD_HandleTypeDef *hsd, HAL_SD_CardInfoTy
   return errorstate;
 }
 
-// [ILG]
-#if defined ( __GNUC__ )
-#pragma GCC diagnostic pop
-#endif
-
 /**
   * @brief  Enables wide bus operation for the requested card if supported by 
   *         card.
@@ -1882,8 +1894,11 @@ HAL_SD_ErrorTypedef HAL_SD_HighSpeed (SD_HandleTypeDef *hsd)
     {
       return errorstate;
     }
-        
+#ifdef SDIO_STA_STBITERR        
     while(!__HAL_SD_SDIO_GET_FLAG(hsd, SDIO_FLAG_RXOVERR | SDIO_FLAG_DCRCFAIL | SDIO_FLAG_DTIMEOUT | SDIO_FLAG_DBCKEND | SDIO_FLAG_STBITERR))
+#else /* SDIO_STA_STBITERR */
+    while(!__HAL_SD_SDIO_GET_FLAG(hsd, SDIO_FLAG_RXOVERR | SDIO_FLAG_DCRCFAIL | SDIO_FLAG_DTIMEOUT | SDIO_FLAG_DBCKEND))      
+#endif /* SDIO_STA_STBITERR */
     {
       if (__HAL_SD_SDIO_GET_FLAG(hsd, SDIO_FLAG_RXFIFOHF))
       {
@@ -1920,6 +1935,7 @@ HAL_SD_ErrorTypedef HAL_SD_HighSpeed (SD_HandleTypeDef *hsd)
       
       return errorstate;
     }
+#ifdef SDIO_STA_STBITERR
     else if (__HAL_SD_SDIO_GET_FLAG(hsd, SDIO_FLAG_STBITERR))
     {
       __HAL_SD_SDIO_CLEAR_FLAG(hsd, SDIO_FLAG_STBITERR);
@@ -1928,6 +1944,7 @@ HAL_SD_ErrorTypedef HAL_SD_HighSpeed (SD_HandleTypeDef *hsd)
       
       return errorstate;
     }
+#endif /* SDIO_STA_STBITERR */
     else
     {
       /* No error flag set */
@@ -2048,7 +2065,11 @@ HAL_SD_ErrorTypedef HAL_SD_SendSDStatus(SD_HandleTypeDef *hsd, uint32_t *pSDstat
   }
   
   /* Get status data */
+#ifdef SDIO_STA_STBITERR 
   while(!__HAL_SD_SDIO_GET_FLAG(hsd, SDIO_FLAG_RXOVERR | SDIO_FLAG_DCRCFAIL | SDIO_FLAG_DTIMEOUT | SDIO_FLAG_DBCKEND | SDIO_FLAG_STBITERR))
+#else /* SDIO_STA_STBITERR not defined */
+  while(!__HAL_SD_SDIO_GET_FLAG(hsd, SDIO_FLAG_RXOVERR | SDIO_FLAG_DCRCFAIL | SDIO_FLAG_DTIMEOUT | SDIO_FLAG_DBCKEND))    
+#endif /* SDIO_STA_STBITERR */
   {
     if (__HAL_SD_SDIO_GET_FLAG(hsd, SDIO_FLAG_RXFIFOHF))
     {
@@ -2085,6 +2106,7 @@ HAL_SD_ErrorTypedef HAL_SD_SendSDStatus(SD_HandleTypeDef *hsd, uint32_t *pSDstat
     
     return errorstate;
   }
+#ifdef SDIO_STA_STBITERR
   else if (__HAL_SD_SDIO_GET_FLAG(hsd, SDIO_FLAG_STBITERR))
   {
     __HAL_SD_SDIO_CLEAR_FLAG(hsd, SDIO_FLAG_STBITERR);
@@ -2093,6 +2115,7 @@ HAL_SD_ErrorTypedef HAL_SD_SendSDStatus(SD_HandleTypeDef *hsd, uint32_t *pSDstat
     
     return errorstate;
   }
+#endif /* SDIO_STA_STBITERR */
   else
   {
     /* No error flag set */
@@ -2138,12 +2161,6 @@ HAL_SD_TransferStateTypedef HAL_SD_GetStatus(SD_HandleTypeDef *hsd)
     return SD_TRANSFER_BUSY;
   }
 }
-
-// [ILG]
-#if defined ( __GNUC__ )
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wconversion"
-#endif
 
 /**
   * @brief  Gets the SD card status.
@@ -2227,11 +2244,6 @@ HAL_SD_ErrorTypedef HAL_SD_GetCardStatus(SD_HandleTypeDef *hsd, HAL_SD_CardStatu
   
   return errorstate;
 }
-
-// [ILG]
-#if defined ( __GNUC__ )
-#pragma GCC diagnostic pop
-#endif
          
 /**
   * @}
@@ -3230,8 +3242,11 @@ static HAL_SD_ErrorTypedef SD_FindSCR(SD_HandleTypeDef *hsd, uint32_t *pSCR)
   {
     return errorstate;
   }
-  
+#ifdef SDIO_STA_STBITERR  
   while(!__HAL_SD_SDIO_GET_FLAG(hsd, SDIO_FLAG_RXOVERR | SDIO_FLAG_DCRCFAIL | SDIO_FLAG_DTIMEOUT | SDIO_FLAG_DBCKEND | SDIO_FLAG_STBITERR))
+#else /* SDIO_STA_STBITERR not defined */
+  while(!__HAL_SD_SDIO_GET_FLAG(hsd, SDIO_FLAG_RXOVERR | SDIO_FLAG_DCRCFAIL | SDIO_FLAG_DTIMEOUT | SDIO_FLAG_DBCKEND))
+#endif /* SDIO_STA_STBITERR */
   {
     if(__HAL_SD_SDIO_GET_FLAG(hsd, SDIO_FLAG_RXDAVL))
     {
@@ -3264,6 +3279,7 @@ static HAL_SD_ErrorTypedef SD_FindSCR(SD_HandleTypeDef *hsd, uint32_t *pSCR)
     
     return errorstate;
   }
+#ifdef SDIO_STA_STBITERR
   else if(__HAL_SD_SDIO_GET_FLAG(hsd, SDIO_FLAG_STBITERR))
   {
     __HAL_SD_SDIO_CLEAR_FLAG(hsd, SDIO_FLAG_STBITERR);
@@ -3272,6 +3288,7 @@ static HAL_SD_ErrorTypedef SD_FindSCR(SD_HandleTypeDef *hsd, uint32_t *pSCR)
     
     return errorstate;
   }
+#endif /* SDIO_STA_STBITERR */
   else
   {
     /* No error flag set */

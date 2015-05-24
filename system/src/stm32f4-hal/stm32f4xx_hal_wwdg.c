@@ -2,8 +2,8 @@
   ******************************************************************************
   * @file    stm32f4xx_hal_wwdg.c
   * @author  MCD Application Team
-  * @version V1.2.0
-  * @date    26-December-2014
+  * @version V1.3.0
+  * @date    09-March-2015
   * @brief   WWDG HAL module driver.
   *          This file provides firmware functions to manage the following 
   *          functionalities of the Window Watchdog (WWDG) peripheral:
@@ -31,8 +31,8 @@
     (+) WWDG clock (Hz) = PCLK1 / (4096 * Prescaler)
     (+) WWDG timeout (mS) = 1000 * Counter / WWDG clock
     (+) WWDG Counter refresh is allowed between the following limits :
-        (++) min time (mS) = 1000 * (Counter ??? Window) / WWDG clock
-        (++) max time (mS) = 1000 * (Counter ??? 0x40) / WWDG clock
+        (++) min time (mS) = 1000 * (Counter – Window) / WWDG clock
+        (++) max time (mS) = 1000 * (Counter – 0x40) / WWDG clock
     
     (+) Min-max timeout value at 50 MHz(PCLK1): 81.9 us / 41.9 ms 
 
@@ -70,7 +70,7 @@
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; COPYRIGHT(c) 2014 STMicroelectronics</center></h2>
+  * <h2><center>&copy; COPYRIGHT(c) 2015 STMicroelectronics</center></h2>
   *
   * Redistribution and use in source and binary forms, with or without modification,
   * are permitted provided that the following conditions are met:
@@ -163,6 +163,8 @@ HAL_StatusTypeDef HAL_WWDG_Init(WWDG_HandleTypeDef *hwwdg)
   
   if(hwwdg->State == HAL_WWDG_STATE_RESET)
   {
+    /* Allocate lock resource and initialize it */
+    hwwdg->Lock = HAL_UNLOCKED;
     /* Init the low level hardware */
     HAL_WWDG_MspInit(hwwdg);
   }
@@ -224,12 +226,6 @@ HAL_StatusTypeDef HAL_WWDG_DeInit(WWDG_HandleTypeDef *hwwdg)
   return HAL_OK;
 }
 
-// [ILG]
-#if defined ( __GNUC__ )
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-#endif
-
 /**
   * @brief  Initializes the WWDG MSP.
   * @param  hwwdg: pointer to a WWDG_HandleTypeDef structure that contains
@@ -255,11 +251,6 @@ __weak void HAL_WWDG_MspDeInit(WWDG_HandleTypeDef *hwwdg)
            the HAL_WWDG_MspDeInit could be implemented in the user file
    */
 }
-
-// [ILG]
-#if defined ( __GNUC__ )
-#pragma GCC diagnostic pop
-#endif
 
 /**
   * @}
@@ -400,12 +391,6 @@ void HAL_WWDG_IRQHandler(WWDG_HandleTypeDef *hwwdg)
   }
 } 
 
-// [ILG]
-#if defined ( __GNUC__ )
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-#endif
-
 /**
   * @brief  Early Wakeup WWDG callback.
   * @param  hwwdg: pointer to a WWDG_HandleTypeDef structure that contains
@@ -418,11 +403,6 @@ __weak void HAL_WWDG_WakeupCallback(WWDG_HandleTypeDef* hwwdg)
            the HAL_WWDG_WakeupCallback could be implemented in the user file
    */
 }
-
-// [ILG]
-#if defined ( __GNUC__ )
-#pragma GCC diagnostic pop
-#endif
 
 /**
   * @}

@@ -2,8 +2,8 @@
   ******************************************************************************
   * @file    stm32f4xx_hal_rtc.c
   * @author  MCD Application Team
-  * @version V1.2.0
-  * @date    26-December-2014
+  * @version V1.3.0
+  * @date    09-March-2015
   * @brief   RTC HAL module driver.
   *          This file provides firmware functions to manage the following 
   *          functionalities of the Real Time Clock (RTC) peripheral:
@@ -108,7 +108,7 @@
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; COPYRIGHT(c) 2014 STMicroelectronics</center></h2>
+  * <h2><center>&copy; COPYRIGHT(c) 2015 STMicroelectronics</center></h2>
   *
   * Redistribution and use in source and binary forms, with or without modification,
   * are permitted provided that the following conditions are met:
@@ -218,6 +218,8 @@ HAL_StatusTypeDef HAL_RTC_Init(RTC_HandleTypeDef *hrtc)
     
   if(hrtc->State == HAL_RTC_STATE_RESET)
   {
+    /* Allocate lock resource and initialize it */
+    hrtc->Lock = HAL_UNLOCKED;
     /* Initialize RTC MSP */
     HAL_RTC_MspInit(hrtc);
   }
@@ -367,12 +369,6 @@ HAL_StatusTypeDef HAL_RTC_DeInit(RTC_HandleTypeDef *hrtc)
   return HAL_OK;
 }
 
-// [ILG]
-#if defined ( __GNUC__ )
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-#endif
-
 /**
   * @brief  Initializes the RTC MSP.
   * @param  hrtc: pointer to a RTC_HandleTypeDef structure that contains
@@ -398,11 +394,6 @@ __weak void HAL_RTC_MspDeInit(RTC_HandleTypeDef* hrtc)
             the HAL_RTC_MspDeInit could be implemented in the user file
    */ 
 }
-
-// [ILG]
-#if defined ( __GNUC__ )
-#pragma GCC diagnostic pop
-#endif
 
 /**
   * @}
@@ -1137,7 +1128,7 @@ HAL_StatusTypeDef HAL_RTC_SetAlarm_IT(RTC_HandleTypeDef *hrtc, RTC_AlarmTypeDef 
 }
 
 /**
-  * @brief  Deactive the specified RTC Alarm 
+  * @brief  Deactivate the specified RTC Alarm 
   * @param  hrtc: pointer to a RTC_HandleTypeDef structure that contains
   *                the configuration information for RTC.
   * @param  Alarm: Specifies the Alarm.
@@ -1227,13 +1218,7 @@ HAL_StatusTypeDef HAL_RTC_DeactivateAlarm(RTC_HandleTypeDef *hrtc, uint32_t Alar
   
   return HAL_OK; 
 }
-
-// [ILG]
-#if defined ( __GNUC__ )
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wconversion"
-#endif
-
+           
 /**
   * @brief  Gets the RTC Alarm value and masks.
   * @param  hrtc: pointer to a RTC_HandleTypeDef structure that contains
@@ -1294,11 +1279,6 @@ HAL_StatusTypeDef HAL_RTC_GetAlarm(RTC_HandleTypeDef *hrtc, RTC_AlarmTypeDef *sA
   return HAL_OK;
 }
 
-// [ILG]
-#if defined ( __GNUC__ )
-#pragma GCC diagnostic pop
-#endif
-
 /**
   * @brief  This function handles Alarm interrupt request.
   * @param  hrtc: pointer to a RTC_HandleTypeDef structure that contains
@@ -1340,12 +1320,6 @@ void HAL_RTC_AlarmIRQHandler(RTC_HandleTypeDef* hrtc)
   hrtc->State = HAL_RTC_STATE_READY; 
 }
 
-// [ILG]
-#if defined ( __GNUC__ )
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-#endif
-
 /**
   * @brief  Alarm A callback.
   * @param  hrtc: pointer to a RTC_HandleTypeDef structure that contains
@@ -1358,11 +1332,6 @@ __weak void HAL_RTC_AlarmAEventCallback(RTC_HandleTypeDef *hrtc)
             the HAL_RTC_AlarmAEventCallback could be implemented in the user file
    */
 }
-
-// [ILG]
-#if defined ( __GNUC__ )
-#pragma GCC diagnostic pop
-#endif
 
 /**
   * @brief  This function handles AlarmA Polling request.
@@ -1522,12 +1491,6 @@ HAL_StatusTypeDef RTC_EnterInitMode(RTC_HandleTypeDef* hrtc)
   return HAL_OK;  
 }
 
-// [ILG]
-#if defined ( __GNUC__ )
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wconversion"
-#pragma GCC diagnostic ignored "-Wsign-conversion"
-#endif
 
 /**
   * @brief  Converts a 2 digit decimal to BCD format.
@@ -1558,11 +1521,6 @@ uint8_t RTC_Bcd2ToByte(uint8_t Value)
   tmp = ((uint8_t)(Value & (uint8_t)0xF0) >> (uint8_t)0x4) * 10;
   return (tmp + (Value & (uint8_t)0x0F));
 }
-
-// [ILG]
-#if defined ( __GNUC__ )
-#pragma GCC diagnostic pop
-#endif
 
 /**
   * @}

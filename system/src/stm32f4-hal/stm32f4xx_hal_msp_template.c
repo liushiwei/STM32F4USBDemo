@@ -2,15 +2,15 @@
   ******************************************************************************
   * @file    stm32f4xx_hal_msp_template.c
   * @author  MCD Application Team
-  * @version V1.2.0
-  * @date    26-December-2014
+  * @version V1.3.0
+  * @date    09-March-2015
   * @brief   This file contains the HAL System and Peripheral (PPP) MSP initialization
   *          and de-initialization functions.
   *          It should be copied to the application folder and renamed into 'stm32f4xx_hal_msp.c'.           
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; COPYRIGHT(c) 2014 STMicroelectronics</center></h2>
+  * <h2><center>&copy; COPYRIGHT(c) 2015 STMicroelectronics</center></h2>
   *
   * Redistribution and use in source and binary forms, with or without modification,
   * are permitted provided that the following conditions are met:
@@ -62,7 +62,7 @@
 
 /**
   * @brief  Initializes the Global MSP.
-  * @note   This functiona is called from HAL_Init() function to perform system
+  * @note   This function is called from HAL_Init() function to perform system
   *         level initialization (GPIOs, clock, DMA, interrupt).
   * @retval None
   */
@@ -81,12 +81,6 @@ void HAL_MspDeInit(void)
 {
 
 }
-
-// [ILG]
-#if defined ( __GNUC__ )
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wmissing-prototypes"
-#endif
 
 /**
   * @brief  Initializes the PPP MSP.
@@ -109,11 +103,6 @@ void HAL_PPP_MspDeInit(void)
 {
 
 }
-
-// [ILG]
-#if defined ( __GNUC__ )
-#pragma GCC diagnostic pop
-#endif
 
 /**
   * @}
