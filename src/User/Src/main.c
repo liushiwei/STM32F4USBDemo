@@ -64,7 +64,7 @@ int main(void)
   BSP_LED_Init(LED5);
   BSP_LED_Init(LED6);
   
-  BSP_LED_Toggle(LED4);
+  //BSP_LED_Toggle(LED4);
   /* Init Device Library */
   USBD_Init(&USBD_Device, &VCP_Desc, 0);
   
@@ -169,7 +169,7 @@ static void Toggle_Leds(void)
 	BSP_LED_Off(LED6);
 
 	/* Toggle LED4 */
-	BSP_LED_Toggle(LED4);
+	//BSP_LED_Toggle(LED4);
 	HAL_Delay(10);
 	/* Toggle LED4 */
 	BSP_LED_Toggle(LED3);
@@ -184,7 +184,7 @@ static void Toggle_Leds(void)
 	if (togglecounter == 0x10) {
 		togglecounter = 0x00;
 		while (togglecounter < 0x10) {
-			BSP_LED_Toggle(LED4);
+			//BSP_LED_Toggle(LED4);
 			BSP_LED_Toggle(LED3);
 			BSP_LED_Toggle(LED5);
 			BSP_LED_Toggle(LED6);

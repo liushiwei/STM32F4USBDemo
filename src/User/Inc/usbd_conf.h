@@ -44,7 +44,7 @@
 #define USBD_SUPPORT_USER_STRING              0
 #define USBD_SELF_POWERED                     1
 #define USBD_DEBUG_LEVEL                      0
- 
+#define USE_USB_FS
 /* Exported macro ------------------------------------------------------------*/
 /* Memory management macros */
 #define USBD_malloc               malloc
