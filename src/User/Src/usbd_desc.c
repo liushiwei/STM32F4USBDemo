@@ -71,6 +71,11 @@ USBD_DescriptorsTypeDef VCP_Desc = {
 #if defined ( __ICCARM__ ) /*!< IAR Compiler */
   #pragma data_alignment=4   
 #endif
+/*
+ * @liushiwei
+ * USB Standard Device Descriptor
+ *
+ */
 __ALIGN_BEGIN uint8_t USBD_DeviceDesc[USB_LEN_DEV_DESC] __ALIGN_END = {
   0x12,                       /* bLength */
   USB_DESC_TYPE_DEVICE,       /* bDescriptorType */
