@@ -52,6 +52,14 @@
 #define CDC_IN_EP                                   0x81  /* EP1 for data IN */
 #define CDC_OUT_EP                                  0x01  /* EP1 for data OUT */
 #define CDC_CMD_EP                                  0x82  /* EP2 for CDC commands */
+/**
+ * @liushiwei
+ * define eps
+ */
+#define CDC_IN_EP1                                   0x81  /* EP1 for data IN */
+#define CDC_OUT_EP1                                  0x01  /* EP1 for data OUT */
+#define CDC_IN_EP2                                  0x82  /* EP2 for CDC commands */
+#define CDC_OUT_EP2                                  0x02  /* EP1 for data OUT */
 
 /* CDC Endpoints parameters: you can fine tune these values depending on the needed baudrates and performance. */
 #define CDC_DATA_HS_MAX_PACKET_SIZE                 512  /* Endpoint IN & OUT Packet size */
@@ -59,6 +67,7 @@
 #define CDC_CMD_PACKET_SIZE                         8  /* Control Endpoint Packet size */ 
 
 #define USB_CDC_CONFIG_DESC_SIZ                     67
+#define USB_CDC_CUSTOM_CONFIG_DESC_SIZ              46
 #define CDC_DATA_HS_IN_PACKET_SIZE                  CDC_DATA_HS_MAX_PACKET_SIZE
 #define CDC_DATA_HS_OUT_PACKET_SIZE                 CDC_DATA_HS_MAX_PACKET_SIZE
 
