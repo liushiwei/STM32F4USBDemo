@@ -219,6 +219,11 @@ static int8_t CDC_Itf_Control (uint8_t cmd, uint8_t* pbuf, uint16_t length)
   return (USBD_OK);
 }
 
+/*
+ * @liushiwei
+ * 定时器回调
+ * 从UserTxBuffer中取出串口发来的数据，发送到USB 端口。
+ */
 /**
   * @brief  TIM period elapsed callback
   * @param  htim: TIM handle
