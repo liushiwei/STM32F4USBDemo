@@ -285,6 +285,9 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
   */
 static int8_t CDC_Itf_Receive(uint8_t* Buf, uint16_t *Len)
 {
+//  HAL_PCD_EP_Receive(&USBD_Device,
+//	                       CDC_IN_EP1,
+//						   Buf, *Len);
   HAL_UART_Transmit_DMA(&UartHandle, Buf, *Len);
   return (USBD_OK);
 }

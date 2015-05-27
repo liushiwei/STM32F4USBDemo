@@ -629,7 +629,7 @@ static uint8_t  USBD_CDC_Init (USBD_HandleTypeDef *pdev,
     {      
       /* Prepare Out endpoint to receive next packet */
       USBD_LL_PrepareReceive(pdev,
-                             CDC_OUT_EP,
+                             CDC_OUT_EP1,
                              hcdc->RxBuffer,
                              CDC_DATA_HS_OUT_PACKET_SIZE);
     }
@@ -637,7 +637,7 @@ static uint8_t  USBD_CDC_Init (USBD_HandleTypeDef *pdev,
     {
       /* Prepare Out endpoint to receive next packet */
       USBD_LL_PrepareReceive(pdev,
-                             CDC_OUT_EP,
+                             CDC_OUT_EP1,
                              hcdc->RxBuffer,
                              CDC_DATA_FS_OUT_PACKET_SIZE);
     }
