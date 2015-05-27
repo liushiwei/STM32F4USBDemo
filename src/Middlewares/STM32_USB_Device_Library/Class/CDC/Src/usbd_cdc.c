@@ -281,7 +281,7 @@ __ALIGN_BEGIN uint8_t USBD_CDC_CustomCfgFSDesc[USB_CDC_CUSTOM_CONFIG_DESC_SIZ] _
   /*Configuration Descriptor*/
   0x09,   /* bLength: Configuration Descriptor size */
   USB_DESC_TYPE_CONFIGURATION,      /* bDescriptorType: Configuration */
-  USB_CDC_CONFIG_DESC_SIZ,                /* wTotalLength:no of returned bytes */
+  USB_CDC_CUSTOM_CONFIG_DESC_SIZ,                /* wTotalLength:no of returned bytes */
   0x00,
   0x01,   /* bNumInterfaces: 2 interface */
   0x01,   /* bConfigurationValue: Configuration value */
@@ -554,36 +554,58 @@ static uint8_t  USBD_CDC_Init (USBD_HandleTypeDef *pdev,
   {  
     /* Open EP IN */
     USBD_LL_OpenEP(pdev,
-                   CDC_IN_EP,
+                   CDC_IN_EP1,
                    USBD_EP_TYPE_BULK,
                    CDC_DATA_HS_IN_PACKET_SIZE);
     
     /* Open EP OUT */
     USBD_LL_OpenEP(pdev,
-                   CDC_OUT_EP,
+                   CDC_OUT_EP1,
                    USBD_EP_TYPE_BULK,
                    CDC_DATA_HS_OUT_PACKET_SIZE);
-    
+    /* Open EP IN */
+       USBD_LL_OpenEP(pdev,
+                      CDC_IN_EP2,
+                      USBD_EP_TYPE_BULK,
+                      CDC_DATA_HS_IN_PACKET_SIZE);
+
+       /* Open EP OUT */
+       USBD_LL_OpenEP(pdev,
+                      CDC_OUT_EP2,
+                      USBD_EP_TYPE_BULK,
+                      CDC_DATA_HS_OUT_PACKET_SIZE);
+
   }
   else
   {
     /* Open EP IN */
     USBD_LL_OpenEP(pdev,
-                   CDC_IN_EP,
+                   CDC_IN_EP1,
                    USBD_EP_TYPE_BULK,
                    CDC_DATA_FS_IN_PACKET_SIZE);
     
     /* Open EP OUT */
     USBD_LL_OpenEP(pdev,
-                   CDC_OUT_EP,
+                   CDC_OUT_EP1,
                    USBD_EP_TYPE_BULK,
                    CDC_DATA_FS_OUT_PACKET_SIZE);
+    /* Open EP IN */
+       USBD_LL_OpenEP(pdev,
+                      CDC_IN_EP2,
+                      USBD_EP_TYPE_BULK,
+                      CDC_DATA_FS_IN_PACKET_SIZE);
+
+       /* Open EP OUT */
+       USBD_LL_OpenEP(pdev,
+                      CDC_OUT_EP2,
+                      USBD_EP_TYPE_BULK,
+                      CDC_DATA_FS_OUT_PACKET_SIZE);
   }
-  /* Open Command IN EP */
-  USBD_LL_OpenEP(pdev,
-                 CDC_CMD_EP,
-                 USBD_EP_TYPE_INTR,
-                 CDC_CMD_PACKET_SIZE);
+//  /* Open Command IN EP */
+//  USBD_LL_OpenEP(pdev,
+//                 CDC_CMD_EP,
+//                 USBD_EP_TYPE_INTR,
+//                 CDC_CMD_PACKET_SIZE);
   
     
   pdev->pClassData = USBD_malloc(sizeof (USBD_CDC_HandleTypeDef));
@@ -639,15 +661,22 @@ static uint8_t  USBD_CDC_DeInit (USBD_HandleTypeDef *pdev,
   
   /* Open EP IN */
   USBD_LL_CloseEP(pdev,
-              CDC_IN_EP);
+              CDC_IN_EP1);
   
   /* Open EP OUT */
   USBD_LL_CloseEP(pdev,
-              CDC_OUT_EP);
+              CDC_OUT_EP1);
+
+  USBD_LL_CloseEP(pdev,
+               CDC_IN_EP2);
+
+   /* Open EP OUT */
+   USBD_LL_CloseEP(pdev,
+               CDC_OUT_EP2);
   
   /* Open Command IN EP */
-  USBD_LL_CloseEP(pdev,
-              CDC_CMD_EP);
+//  USBD_LL_CloseEP(pdev,
+//              CDC_CMD_EP);
   
   
   /* DeInit  physical Interface components */
@@ -963,7 +992,7 @@ uint8_t  USBD_CDC_ReceivePacket(USBD_HandleTypeDef *pdev)
     {      
       /* Prepare Out endpoint to receive next packet */
       USBD_LL_PrepareReceive(pdev,
-                             CDC_OUT_EP,
+                             CDC_OUT_EP1,
                              hcdc->RxBuffer,
                              CDC_DATA_HS_OUT_PACKET_SIZE);
     }
@@ -971,7 +1000,7 @@ uint8_t  USBD_CDC_ReceivePacket(USBD_HandleTypeDef *pdev)
     {
       /* Prepare Out endpoint to receive next packet */
       USBD_LL_PrepareReceive(pdev,
-                             CDC_OUT_EP,
+                             CDC_OUT_EP1,
                              hcdc->RxBuffer,
                              CDC_DATA_FS_OUT_PACKET_SIZE);
     }
