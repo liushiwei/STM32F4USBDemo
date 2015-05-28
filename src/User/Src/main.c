@@ -117,7 +117,7 @@ static void SystemClock_Config(void)
      regarding system frequency refer to product datasheet.  */
   __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
 
-  /* Configure RCC Oscillators: All parameters can be changed according to user�s needs */
+  /* Configure RCC Oscillators: All parameters can be changed accordin]]]]]]======g to user�s needs */
   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
   RCC_OscInitStruct.HSEState = RCC_HSE_ON;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
@@ -169,7 +169,8 @@ static void Toggle_Leds(void)
 	BSP_LED_Off(LED6);
 
 	/* Toggle LED4 */
-	//BSP_LED_Toggle(LED4);
+	HAL_Delay(20);
+	BSP_LED_Toggle(LED4);
 	HAL_Delay(10);
 	/* Toggle LED4 */
 	BSP_LED_Toggle(LED3);
@@ -184,7 +185,7 @@ static void Toggle_Leds(void)
 	if (togglecounter == 0x10) {
 		togglecounter = 0x00;
 		while (togglecounter < 0x10) {
-			//BSP_LED_Toggle(LED4);
+			BSP_LED_Toggle(LED4);
 			BSP_LED_Toggle(LED3);
 			BSP_LED_Toggle(LED5);
 			BSP_LED_Toggle(LED6);

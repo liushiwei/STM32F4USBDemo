@@ -27,6 +27,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include <string.h>
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
 #define APP_RX_DATA_SIZE  2048
@@ -286,6 +287,8 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 static int8_t CDC_Itf_Receive(uint8_t* Buf, uint16_t *Len)
 {
   HAL_UART_Transmit_DMA(&UartHandle, Buf, *Len);
+  memcpy(&UserTxBuffer,Buf,*Len);
+  UserTxBufPtrIn = *Len;
   return (USBD_OK);
 }
 
