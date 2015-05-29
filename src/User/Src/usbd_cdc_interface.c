@@ -45,6 +45,9 @@ USBD_CDC_LineCodingTypeDef LineCoding =
 
 uint8_t UserRxBuffer[APP_RX_DATA_SIZE];/* Received Data over USB are stored in this buffer */
 uint8_t UserTxBuffer[APP_TX_DATA_SIZE];/* Received Data over UART (CDC interface) are stored in this buffer */
+uint8_t UserBackTxBuffer[APP_TX_DATA_SIZE];/* Received Data over UART (CDC interface) are stored in this buffer */
+uint32_t UserBackTxBufPtrIn = 0;/* Increment this pointer or roll it back to
+                               start address when data are received over USART */
 uint32_t BuffLength;
 uint32_t UserTxBufPtrIn = 0;/* Increment this pointer or roll it back to
                                start address when data are received over USART */
@@ -254,6 +257,13 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
       }
     }
   }
+  if(UserBackTxBufPtrIn!=0){
+	  USBD_CDC_SetTxBuffer(&USBD_Device, (uint8_t*)&UserBackTxBuffer[0], UserBackTxBufPtrIn);
+		if (USBD_CDC_TransmitPacket(&USBD_Device) == USBD_OK) {
+			UserBackTxBufPtrIn = 0;
+		}
+
+  }
 }
 
 /**
@@ -287,8 +297,8 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 static int8_t CDC_Itf_Receive(uint8_t* Buf, uint16_t *Len)
 {
   HAL_UART_Transmit_DMA(&UartHandle, Buf, *Len);
-  memcpy(&UserTxBuffer,Buf,*Len);
-  UserTxBufPtrIn = *Len;
+  memcpy(&UserBackTxBuffer,Buf,*Len);
+  UserBackTxBufPtrIn = *Len;
   return (USBD_OK);
 }
 
