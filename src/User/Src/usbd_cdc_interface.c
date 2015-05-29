@@ -60,7 +60,6 @@ UART_HandleTypeDef UartHandle;
 TIM_HandleTypeDef  TimHandle;
 /* USB handler declaration */
 extern USBD_HandleTypeDef  USBD_Device;
-
 /* Private function prototypes -----------------------------------------------*/
 static int8_t CDC_Itf_Init(void);
 static int8_t CDC_Itf_DeInit(void);
@@ -70,6 +69,8 @@ static int8_t CDC_Itf_Receive(uint8_t* pbuf, uint16_t *Len);
 static void Error_Handler(void);
 static void ComPort_Config(void);
 static void TIM_Config(void);
+
+int isGetData;
 
 USBD_CDC_ItfTypeDef USBD_CDC_fops = 
 {
@@ -258,6 +259,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
     }
   }
   if(UserBackTxBufPtrIn!=0){
+	  isGetData = 1;
 	  USBD_CDC_SetTxBuffer(&USBD_Device, (uint8_t*)&UserBackTxBuffer[0], UserBackTxBufPtrIn);
 		if (USBD_CDC_TransmitPacket(&USBD_Device) == USBD_OK) {
 			UserBackTxBufPtrIn = 0;

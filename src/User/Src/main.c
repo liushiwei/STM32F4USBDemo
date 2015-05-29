@@ -33,7 +33,7 @@
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 USBD_HandleTypeDef  USBD_Device;
-
+extern int isGetData;
 /* Private function prototypes -----------------------------------------------*/
 static void SystemClock_Config(void);
 static void Toggle_Leds(void);
@@ -80,7 +80,14 @@ int main(void)
   /* Run Application (Interrupt mode) */
   while (1)
   {
-    Toggle_Leds();
+	if(isGetData==1){
+		Toggle_Leds();
+		isGetData = 0;
+	}else{
+		HAL_Delay(80);
+		isGetData=1;
+	}
+
   }
 }
 
