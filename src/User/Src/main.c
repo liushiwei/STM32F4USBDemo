@@ -169,7 +169,8 @@ static void Toggle_Leds(void)
 	BSP_LED_Off(LED6);
 
 	/* Toggle LED4 */
-	//BSP_LED_Toggle(LED4);
+	HAL_Delay(20);
+	BSP_LED_Toggle(LED4);
 	HAL_Delay(10);
 	/* Toggle LED4 */
 	BSP_LED_Toggle(LED3);

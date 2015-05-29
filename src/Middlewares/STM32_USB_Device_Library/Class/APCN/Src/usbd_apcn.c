@@ -132,13 +132,13 @@ USBD_ClassTypeDef  USBD_APCN_ClassDriver =
   USBD_APCN_Init,
   USBD_APCN_DeInit,
   USBD_APCN_Setup,
-  USBD_APCN_EP0_TxReady,
+  NULL,
   USBD_APCN_EP0_RxReady,
   USBD_APCN_DataIn,
   USBD_APCN_DataOut,
-  USBD_APCN_SOF,
-  USBD_APCN_IsoINIncomplete,
-  USBD_APCN_IsoOutIncomplete,
+  NULL,
+  NULL,
+  NULL,
   USBD_APCN_GetCfgDesc,
   USBD_APCN_GetCfgDesc,
   USBD_APCN_GetCfgDesc,
@@ -399,28 +399,6 @@ static uint8_t  USBD_APCN_DeInit (USBD_HandleTypeDef *pdev,
 static uint8_t  USBD_APCN_Setup (USBD_HandleTypeDef *pdev,
                                 USBD_SetupReqTypedef *req)
 {
-
- /* switch (req->bmRequest & USB_REQ_TYPE_MASK)
-  {
-  case USB_REQ_TYPE_CLASS :
-    switch (req->bRequest)
-    {
-
-    default:
-      USBD_CtlError (pdev, req);
-      return USBD_FAIL;
-    }
-    break;
-
-  case USB_REQ_TYPE_STANDARD:
-    switch (req->bRequest)
-    {
-
-    default:
-      USBD_CtlError (pdev, req);
-      return USBD_FAIL;
-    }
-  }*/
 	USBD_APCN_HandleTypeDef   *hcdc = (USBD_APCN_HandleTypeDef*) pdev->pClassData;
 	  static uint8_t ifalt = 0;
 
