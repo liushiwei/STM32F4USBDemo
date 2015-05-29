@@ -1,6 +1,6 @@
 /**
   ******************************************************************************
-  * @file    USB_Device/CDC_Standalone/Src/usbd_cdc_interface.c
+  * @file    USB_Device/APCN_Standalone/Src/usbd_APCN_interface.c
   * @author  MCD Application Team
   * @version V1.2.1
   * @date    13-March-2015
@@ -34,7 +34,7 @@
 
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
-USBD_CDC_LineCodingTypeDef LineCoding =
+USBD_APCN_LineCodingTypeDef LineCoding =
   {
     115200, /* baud rate*/
     0x00,   /* stop bits-1*/
@@ -58,32 +58,32 @@ TIM_HandleTypeDef  TimHandle;
 extern USBD_HandleTypeDef  USBD_Device;
 
 /* Private function prototypes -----------------------------------------------*/
-static int8_t CDC_Itf_Init(void);
-static int8_t CDC_Itf_DeInit(void);
-static int8_t CDC_Itf_Control(uint8_t cmd, uint8_t* pbuf, uint16_t length);
-static int8_t CDC_Itf_Receive(uint8_t* pbuf, uint16_t *Len);
+static int8_t APCN_Itf_Init(void);
+static int8_t APCN_Itf_DeInit(void);
+static int8_t APCN_Itf_Control(uint8_t cmd, uint8_t* pbuf, uint16_t length);
+static int8_t APCN_Itf_Receive(uint8_t* pbuf, uint16_t *Len);
 
 static void Error_Handler(void);
 static void ComPort_Config(void);
 static void TIM_Config(void);
 
-USBD_CDC_ItfTypeDef USBD_CDC_fops = 
+USBD_APCN_ItfTypeDef USBD_APCN_fops =
 {
-  CDC_Itf_Init,
-  CDC_Itf_DeInit,
-  CDC_Itf_Control,
-  CDC_Itf_Receive
+  APCN_Itf_Init,
+  APCN_Itf_DeInit,
+  APCN_Itf_Control,
+  APCN_Itf_Receive
 };
 
 /* Private functions ---------------------------------------------------------*/
 
 /**
-  * @brief  CDC_Itf_Init
+  * @brief  APCN_Itf_Init
   *         Initializes the CDC media low layer
   * @param  None
   * @retval Result of the operation: USBD_OK if all operations are OK else USBD_FAIL
   */
-static int8_t CDC_Itf_Init(void)
+static int8_t APCN_Itf_Init(void)
 {
   /*##-1- Configure the UART peripheral ######################################*/
   /* Put the USART peripheral in the Asynchronous mode (UART Mode) */
@@ -128,19 +128,19 @@ static int8_t CDC_Itf_Init(void)
   }
   
   /*##-5- Set Application Buffers ############################################*/
-  USBD_CDC_SetTxBuffer(&USBD_Device, UserTxBuffer, 0);
-  USBD_CDC_SetRxBuffer(&USBD_Device, UserRxBuffer);
+  USBD_APCN_SetTxBuffer(&USBD_Device, UserTxBuffer, 0);
+  USBD_APCN_SetRxBuffer(&USBD_Device, UserRxBuffer);
   
   return (USBD_OK);
 }
 
 /**
-  * @brief  CDC_Itf_DeInit
+  * @brief  APCN_Itf_DeInit
   *         DeInitializes the CDC media low layer
   * @param  None
   * @retval Result of the operation: USBD_OK if all operations are OK else USBD_FAIL
   */
-static int8_t CDC_Itf_DeInit(void)
+static int8_t APCN_Itf_DeInit(void)
 {
   /* DeInitialize the UART peripheral */
   if(HAL_UART_DeInit(&UartHandle) != HAL_OK)
@@ -152,38 +152,38 @@ static int8_t CDC_Itf_DeInit(void)
 }
 
 /**
-  * @brief  CDC_Itf_Control
+  * @brief  APCN_Itf_Control
   *         Manage the CDC class requests
   * @param  Cmd: Command code            
   * @param  Buf: Buffer containing command data (request parameters)
   * @param  Len: Number of data to be sent (in bytes)
   * @retval Result of the operation: USBD_OK if all operations are OK else USBD_FAIL
   */
-static int8_t CDC_Itf_Control (uint8_t cmd, uint8_t* pbuf, uint16_t length)
+static int8_t APCN_Itf_Control (uint8_t cmd, uint8_t* pbuf, uint16_t length)
 { 
   switch (cmd)
   {
-  case CDC_SEND_ENCAPSULATED_COMMAND:
+  case APCN_SEND_ENCAPSULATED_COMMAND:
     /* Add your code here */
     break;
 
-  case CDC_GET_ENCAPSULATED_RESPONSE:
+  case APCN_GET_ENCAPSULATED_RESPONSE:
     /* Add your code here */
     break;
 
-  case CDC_SET_COMM_FEATURE:
+  case APCN_SET_COMM_FEATURE:
     /* Add your code here */
     break;
 
-  case CDC_GET_COMM_FEATURE:
+  case APCN_GET_COMM_FEATURE:
     /* Add your code here */
     break;
 
-  case CDC_CLEAR_COMM_FEATURE:
+  case APCN_CLEAR_COMM_FEATURE:
     /* Add your code here */
     break;
 
-  case CDC_SET_LINE_CODING:
+  case APCN_SET_LINE_CODING:
     LineCoding.bitrate    = (uint32_t)(pbuf[0] | (pbuf[1] << 8) |\
                             (pbuf[2] << 16) | (pbuf[3] << 24));
     LineCoding.format     = pbuf[4];
@@ -194,7 +194,7 @@ static int8_t CDC_Itf_Control (uint8_t cmd, uint8_t* pbuf, uint16_t length)
     ComPort_Config();
     break;
 
-  case CDC_GET_LINE_CODING:
+  case APCN_GET_LINE_CODING:
     pbuf[0] = (uint8_t)(LineCoding.bitrate);
     pbuf[1] = (uint8_t)(LineCoding.bitrate >> 8);
     pbuf[2] = (uint8_t)(LineCoding.bitrate >> 16);
@@ -204,11 +204,11 @@ static int8_t CDC_Itf_Control (uint8_t cmd, uint8_t* pbuf, uint16_t length)
     pbuf[6] = LineCoding.datatype;     
     break;
 
-  case CDC_SET_CONTROL_LINE_STATE:
+  case APCN_SET_CONTROL_LINE_STATE:
     /* Add your code here */
     break;
 
-  case CDC_SEND_BREAK:
+  case APCN_SEND_BREAK:
      /* Add your code here */
     break;    
     
@@ -221,9 +221,8 @@ static int8_t CDC_Itf_Control (uint8_t cmd, uint8_t* pbuf, uint16_t length)
 
 /*
  * @liushiwei
- * 定时器回调
- * 从UserTxBuffer中取出串口发来的数据，发送到USB 端口。
- */
+ * 鐎规碍妞傞崳銊ユ礀鐠嬶拷
+ * 娴犲抖serTxBuffer娑擃厼褰囬崙杞拌閸欙絽褰傞弶銉ф畱閺佺増宓侀敍灞藉絺闁礁鍩孶SB 缁旑垰褰涢妴锟� */
 /**
   * @brief  TIM period elapsed callback
   * @param  htim: TIM handle
@@ -247,9 +246,9 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
     
     buffptr = UserTxBufPtrOut;
     
-    USBD_CDC_SetTxBuffer(&USBD_Device, (uint8_t*)&UserTxBuffer[buffptr], buffsize);
+    USBD_APCN_SetTxBuffer(&USBD_Device, (uint8_t*)&UserTxBuffer[buffptr], buffsize);
     
-    if(USBD_CDC_TransmitPacket(&USBD_Device) == USBD_OK)
+    if(USBD_APCN_TransmitPacket(&USBD_Device) == USBD_OK)
     {
       UserTxBufPtrOut += buffsize;
       if (UserTxBufPtrOut == APP_RX_DATA_SIZE)
@@ -281,17 +280,17 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 }
 
 /**
-  * @brief  CDC_Itf_DataRx
+  * @brief  APCN_Itf_DataRx
   *         Data received over USB OUT endpoint are sent over CDC interface 
   *         through this function.
   * @param  Buf: Buffer of data to be transmitted
   * @param  Len: Number of data received (in bytes)
   * @retval Result of the operation: USBD_OK if all operations are OK else USBD_FAIL
   */
-static int8_t CDC_Itf_Receive(uint8_t* Buf, uint16_t *Len)
+static int8_t APCN_Itf_Receive(uint8_t* Buf, uint16_t *Len)
 {
 //  HAL_PCD_EP_Receive(&USBD_Device,
-//	                       CDC_IN_EP1,
+//	                       APCN_IN_EP1,
 //						   Buf, *Len);
   HAL_UART_Transmit_DMA(&UartHandle, Buf, *Len);
   return (USBD_OK);
@@ -305,7 +304,7 @@ static int8_t CDC_Itf_Receive(uint8_t* Buf, uint16_t *Len)
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
 {
   /* Initiate next USB packet transfer once UART completes transfer (transmitting data over Tx line) */
-  USBD_CDC_ReceivePacket(&USBD_Device);
+  USBD_APCN_ReceivePacket(&USBD_Device);
 }
 
 /**
@@ -393,6 +392,11 @@ static void ComPort_Config(void)
 }
 
 /**
+ * @liushiwei
+ *
+ *
+ */
+/**
   * @brief  TIM_Config: Configure TIMx timer
   * @param  None.
   * @retval None
@@ -408,7 +412,7 @@ static void TIM_Config(void)
        + ClockDivision = 0
        + Counter direction = Up
   */
-  TimHandle.Init.Period = (CDC_POLLING_INTERVAL*1000) - 1;
+  TimHandle.Init.Period = (APCN_POLLING_INTERVAL*1000) - 1;
   TimHandle.Init.Prescaler = 84-1;
   TimHandle.Init.ClockDivision = 0;
   TimHandle.Init.CounterMode = TIM_COUNTERMODE_UP;

@@ -1,10 +1,10 @@
 /**
   ******************************************************************************
-  * @file    USB_Device/CDC_Standalone/Inc/usbd_cdc_interface.h
+  * @file    USB_Device/APCN_Standalone/Inc/usbd_APCN_interface.h
   * @author  MCD Application Team
   * @version V1.2.1
   * @date    13-March-2015
-  * @brief   Header for usbd_cdc_interface.c file.
+  * @brief   Header for usbd_APCN_interface.c file.
   ******************************************************************************
   * @attention
   *
@@ -26,11 +26,11 @@
   */
 
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __USBD_CDC_IF_H
-#define __USBD_CDC_IF_H
+#ifndef __USBD_APCN_IF_H
+#define __USBD_APCN_IF_H
 
 /* Includes ------------------------------------------------------------------*/
-#include "usbd_cdc.h"
+#include "usbd_apcn.h"
 
 /* Exported types ------------------------------------------------------------*/
 /* Exported constants --------------------------------------------------------*/
@@ -75,13 +75,13 @@
 #define TIMx_IRQHandler                  TIM3_IRQHandler
 
 /* Periodically, the state of the buffer "UserTxBuffer" is checked.
-   The period depends on CDC_POLLING_INTERVAL */
-#define CDC_POLLING_INTERVAL             5 /* in ms. The max is 65 and the min is 1 */
+   The period depends on APCN_POLLING_INTERVAL */
+#define APCN_POLLING_INTERVAL             5 /* in ms. The max is 65 and the min is 1 */
 
-extern USBD_CDC_ItfTypeDef  USBD_CDC_fops;
+extern USBD_APCN_ItfTypeDef  USBD_APCN_fops;
 
 /* Exported macro ------------------------------------------------------------*/
 /* Exported functions ------------------------------------------------------- */
-#endif /* __USBD_CDC_IF_H */
+#endif /* __USBD_APCN_IF_H */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

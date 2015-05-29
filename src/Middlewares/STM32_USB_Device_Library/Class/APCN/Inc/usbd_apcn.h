@@ -108,6 +108,30 @@
  }
  USBD_APCN_HandleTypeDef;
 
+
+ /*---------------------------------------------------------------------*/
+ /*  APCN definitions                                                    */
+ /*---------------------------------------------------------------------*/
+ #define APCN_SEND_ENCAPSULATED_COMMAND               0x00
+ #define APCN_GET_ENCAPSULATED_RESPONSE               0x01
+ #define APCN_SET_COMM_FEATURE                        0x02
+ #define APCN_GET_COMM_FEATURE                        0x03
+ #define APCN_CLEAR_COMM_FEATURE                      0x04
+ #define APCN_SET_LINE_CODING                         0x20
+ #define APCN_GET_LINE_CODING                         0x21
+ #define APCN_SET_CONTROL_LINE_STATE                  0x22
+ #define APCN_SEND_BREAK                              0x23
+
+ /**
+   * @}
+   */
+ typedef struct
+ {
+   uint32_t bitrate;
+   uint8_t  format;
+   uint8_t  paritytype;
+   uint8_t  datatype;
+ }USBD_APCN_LineCodingTypeDef;
 /** @defgroup USBD_CORE_Exported_TypesDefinitions
   * @{
   */
@@ -131,6 +155,7 @@
   */ 
 
 extern USBD_ClassTypeDef  USBD_APCN_ClassDriver;
+#define USBD_APCN_CLASS    &USBD_APCN_ClassDriver
 /**
   * @}
   */ 
