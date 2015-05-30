@@ -69,13 +69,35 @@
  #define APCN_DATA_FS_MAX_PACKET_SIZE                 64  /* Endpoint IN & OUT Packet size */
  #define APCN_CMD_PACKET_SIZE                         8  /* Control Endpoint Packet size */
 
- #define USB_APCN_CONFIG_DESC_SIZ                     67
- #define USB_APCN_CUSTOM_CONFIG_DESC_SIZ              46
  #define APCN_DATA_HS_IN_PACKET_SIZE                  APCN_DATA_HS_MAX_PACKET_SIZE
  #define APCN_DATA_HS_OUT_PACKET_SIZE                 APCN_DATA_HS_MAX_PACKET_SIZE
 
  #define APCN_DATA_FS_IN_PACKET_SIZE                  APCN_DATA_FS_MAX_PACKET_SIZE
  #define APCN_DATA_FS_OUT_PACKET_SIZE                 APCN_DATA_FS_MAX_PACKET_SIZE
+
+ /*---------------------------------------------------------------------*/
+ /*  APCN definitions                                                    */
+ /*---------------------------------------------------------------------*/
+ #define APCN_SEND_ENCAPSULATED_COMMAND               0x00
+ #define APCN_GET_ENCAPSULATED_RESPONSE               0x01
+ #define APCN_SET_COMM_FEATURE                        0x02
+ #define APCN_GET_COMM_FEATURE                        0x03
+ #define APCN_CLEAR_COMM_FEATURE                      0x04
+ #define APCN_SET_LINE_CODING                         0x20
+ #define APCN_GET_LINE_CODING                         0x21
+ #define APCN_SET_CONTROL_LINE_STATE                  0x22
+ #define APCN_SEND_BREAK                              0x23
+
+ /**
+   * @}
+   */
+ typedef struct
+ {
+   uint32_t bitrate;
+   uint8_t  format;
+   uint8_t  paritytype;
+   uint8_t  datatype;
+ }USBD_APCN_LineCodingTypeDef;
 /**
   * @}
   */ 
@@ -109,29 +131,6 @@
  USBD_APCN_HandleTypeDef;
 
 
- /*---------------------------------------------------------------------*/
- /*  APCN definitions                                                    */
- /*---------------------------------------------------------------------*/
- #define APCN_SEND_ENCAPSULATED_COMMAND               0x00
- #define APCN_GET_ENCAPSULATED_RESPONSE               0x01
- #define APCN_SET_COMM_FEATURE                        0x02
- #define APCN_GET_COMM_FEATURE                        0x03
- #define APCN_CLEAR_COMM_FEATURE                      0x04
- #define APCN_SET_LINE_CODING                         0x20
- #define APCN_GET_LINE_CODING                         0x21
- #define APCN_SET_CONTROL_LINE_STATE                  0x22
- #define APCN_SEND_BREAK                              0x23
-
- /**
-   * @}
-   */
- typedef struct
- {
-   uint32_t bitrate;
-   uint8_t  format;
-   uint8_t  paritytype;
-   uint8_t  datatype;
- }USBD_APCN_LineCodingTypeDef;
 /** @defgroup USBD_CORE_Exported_TypesDefinitions
   * @{
   */
