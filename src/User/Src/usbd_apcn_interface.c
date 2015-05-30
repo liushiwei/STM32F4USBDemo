@@ -27,10 +27,13 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include <string.h>
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
 #define APP_RX_DATA_SIZE  2048
 #define APP_TX_DATA_SIZE  2048
+#define APP_EP1_DATA_SIZE  1024
+#define APP_EP2_DATA_SIZE  1024
 
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
@@ -44,6 +47,12 @@ USBD_APCN_LineCodingTypeDef LineCoding =
 
 uint8_t UserRxBuffer[APP_RX_DATA_SIZE];/* Received Data over USB are stored in this buffer */
 uint8_t UserTxBuffer[APP_TX_DATA_SIZE];/* Received Data over UART (CDC interface) are stored in this buffer */
+uint8_t UserEP1TxBuffer[APP_EP1_DATA_SIZE];//EP1Buffer
+uint8_t UserEP1RxBuffer[APP_EP1_DATA_SIZE];//EP1Buffer
+uint32_t UserEP1TxBufPtrIn = 0;
+uint8_t UserEP2TxBuffer[APP_EP2_DATA_SIZE];//EP1Buffer
+uint8_t UserEP2RxBuffer[APP_EP2_DATA_SIZE];//EP1Buffer
+uint32_t UserEP2TxBufPtrIn = 0;
 uint32_t BuffLength;
 uint32_t UserTxBufPtrIn = 0;/* Increment this pointer or roll it back to
                                start address when data are received over USART */
@@ -61,7 +70,7 @@ extern USBD_HandleTypeDef  USBD_Device;
 static int8_t APCN_Itf_Init(void);
 static int8_t APCN_Itf_DeInit(void);
 static int8_t APCN_Itf_Control(uint8_t cmd, uint8_t* pbuf, uint16_t length);
-static int8_t APCN_Itf_Receive(uint8_t* pbuf, uint16_t *Len);
+static int8_t APCN_Itf_Receive(uint8_t ep,uint8_t* pbuf, uint16_t *Len);
 
 static void Error_Handler(void);
 static void ComPort_Config(void);
@@ -128,8 +137,10 @@ static int8_t APCN_Itf_Init(void)
   }
   
   /*##-5- Set Application Buffers ############################################*/
-  USBD_APCN_SetTxBuffer(&USBD_Device, UserTxBuffer, 0);
-  USBD_APCN_SetRxBuffer(&USBD_Device, UserRxBuffer);
+  USBD_APCN_SetEP1TxBuffer(&USBD_Device, UserEP1TxBuffer, 0);
+  USBD_APCN_SetEP1RxBuffer(&USBD_Device, UserEP1RxBuffer);
+  USBD_APCN_SetEP2TxBuffer(&USBD_Device, UserEP2TxBuffer, 0);
+  USBD_APCN_SetEP2RxBuffer(&USBD_Device, UserEP2RxBuffer);
   
   return (USBD_OK);
 }
@@ -246,9 +257,9 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
     
     buffptr = UserTxBufPtrOut;
     
-    USBD_APCN_SetTxBuffer(&USBD_Device, (uint8_t*)&UserTxBuffer[buffptr], buffsize);
+    USBD_APCN_SetEP1TxBuffer(&USBD_Device, (uint8_t*)&UserTxBuffer[buffptr], buffsize);
     
-    if(USBD_APCN_TransmitPacket(&USBD_Device) == USBD_OK)
+    if(USBD_APCN_TransmitPacket(&USBD_Device,APCN_OUT_EP1) == USBD_OK)
     {
       UserTxBufPtrOut += buffsize;
       if (UserTxBufPtrOut == APP_RX_DATA_SIZE)
@@ -256,7 +267,24 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
         UserTxBufPtrOut = 0;
       }
     }
+
   }
+  if(UserEP1TxBufPtrIn!=0){
+	  USBD_DbgLog("HAL_TIM  UserEP1");
+  	  USBD_APCN_SetEP1TxBuffer(&USBD_Device, (uint8_t*)&UserEP1TxBuffer[0], UserEP1TxBufPtrIn);
+  		if (USBD_APCN_TransmitPacket(&USBD_Device,APCN_OUT_EP1) == USBD_OK) {
+  			UserEP1TxBufPtrIn = 0;
+  		}
+
+  	 }
+  	 if(UserEP2TxBufPtrIn!=0){
+  		USBD_DbgLog("HAL_TIM  UserEP2");
+  		  USBD_APCN_SetEP2TxBuffer(&USBD_Device, (uint8_t*)&UserEP2TxBuffer[0], UserEP2TxBufPtrIn);
+  			if (USBD_APCN_TransmitPacket(&USBD_Device,APCN_OUT_EP2) == USBD_OK) {
+  				UserEP2TxBufPtrIn = 0;
+  			}
+
+  	 }
 }
 
 /**
@@ -287,12 +315,23 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
   * @param  Len: Number of data received (in bytes)
   * @retval Result of the operation: USBD_OK if all operations are OK else USBD_FAIL
   */
-static int8_t APCN_Itf_Receive(uint8_t* Buf, uint16_t *Len)
+static int8_t APCN_Itf_Receive(uint8_t ep,uint8_t* Buf, uint16_t *Len)
 {
 //  HAL_PCD_EP_Receive(&USBD_Device,
 //	                       APCN_IN_EP1,
 //						   Buf, *Len);
-  HAL_UART_Transmit_DMA(&UartHandle, Buf, *Len);
+
+//  HAL_UART_Transmit_DMA(&UartHandle, Buf, *Len);
+  USBD_DbgLog("Receive  %d",ep);
+  if(ep==APCN_OUT_EP1){
+	  memcpy(&UserEP1TxBuffer,Buf,*Len);
+	  UserEP1TxBufPtrIn = *Len;
+  }
+  if(ep==APCN_OUT_EP2){
+  	  memcpy(&UserEP2TxBuffer,Buf,*Len);
+  	  UserEP2TxBufPtrIn = *Len;
+  }
+
   return (USBD_OK);
 }
 

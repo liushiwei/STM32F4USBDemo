@@ -332,12 +332,18 @@ static uint8_t  USBD_APCN_Init (USBD_HandleTypeDef *pdev,
 		if (pdev->dev_speed == USBD_SPEED_HIGH) {
 			/* Prepare Out endpoint to receive next packet */
 			USBD_LL_PrepareReceive(pdev,
-			APCN_OUT_EP1, hcdc->RxBuffer,
+			APCN_OUT_EP1, hcdc->EP1RxBuffer,
+			APCN_DATA_HS_OUT_PACKET_SIZE);
+			USBD_LL_PrepareReceive(pdev,
+			APCN_OUT_EP2, hcdc->EP2RxBuffer,
 			APCN_DATA_HS_OUT_PACKET_SIZE);
 		} else {
 			/* Prepare Out endpoint to receive next packet */
 			USBD_LL_PrepareReceive(pdev,
-			APCN_OUT_EP1, hcdc->RxBuffer,
+			APCN_OUT_EP1, hcdc->EP1RxBuffer,
+			APCN_DATA_FS_OUT_PACKET_SIZE);
+			USBD_LL_PrepareReceive(pdev,
+			APCN_OUT_EP2, hcdc->EP2RxBuffer,
 			APCN_DATA_FS_OUT_PACKET_SIZE);
 		}
 	}
@@ -572,16 +578,27 @@ static uint8_t  USBD_APCN_IsoOutIncomplete (USBD_HandleTypeDef *pdev, uint8_t ep
 static uint8_t  USBD_APCN_DataOut (USBD_HandleTypeDef *pdev,
                               uint8_t epnum)
 {
+	USBD_ErrLog("USBD_APCN_DataOut");
 	USBD_APCN_HandleTypeDef *hcdc = (USBD_APCN_HandleTypeDef*) pdev->pClassData;
 
 	/* Get the received data length */
-	hcdc->RxLength = USBD_LL_GetRxDataSize(pdev, epnum);
+	if(epnum == APCN_OUT_EP1){
+		hcdc->EP1RxLength = USBD_LL_GetRxDataSize(pdev, epnum);
+	}else if(epnum == APCN_OUT_EP2){
+		hcdc->EP2RxLength = USBD_LL_GetRxDataSize(pdev, epnum);
+	}
+
 
 	/* USB data will be immediately processed, this allow next USB traffic being
 	 NAKed till the end of the application Xfer */
 	if (pdev->pClassData != NULL) {
-		((USBD_APCN_ItfTypeDef *) pdev->pUserData)->Receive(hcdc->RxBuffer,
-				&hcdc->RxLength);
+		if(epnum == APCN_OUT_EP1){
+		((USBD_APCN_ItfTypeDef *) pdev->pUserData)->Receive(epnum,hcdc->EP1RxBuffer,
+				&hcdc->EP1RxLength);
+		}else if(epnum == APCN_OUT_EP2){
+			((USBD_APCN_ItfTypeDef *) pdev->pUserData)->Receive(epnum,hcdc->EP2RxBuffer,
+							&hcdc->EP2RxLength);
+		}
 
 		return USBD_OK;
 	} else {
@@ -635,14 +652,14 @@ uint8_t  USBD_APCN_RegisterInterface  (USBD_HandleTypeDef   *pdev,
   * @param  pbuff: Tx Buffer
   * @retval status
   */
-uint8_t  USBD_APCN_SetTxBuffer  (USBD_HandleTypeDef   *pdev,
+uint8_t  USBD_APCN_SetEP1TxBuffer  (USBD_HandleTypeDef   *pdev,
                                 uint8_t  *pbuff,
                                 uint16_t length)
 {
   USBD_APCN_HandleTypeDef   *hcdc = (USBD_APCN_HandleTypeDef*) pdev->pClassData;
 
-  hcdc->TxBuffer = pbuff;
-  hcdc->TxLength = length;
+  hcdc->EP1TxBuffer = pbuff;
+  hcdc->EP1TxLength = length;
 
   return USBD_OK;
 }
@@ -654,12 +671,47 @@ uint8_t  USBD_APCN_SetTxBuffer  (USBD_HandleTypeDef   *pdev,
   * @param  pbuff: Rx Buffer
   * @retval status
   */
-uint8_t  USBD_APCN_SetRxBuffer  (USBD_HandleTypeDef   *pdev,
+uint8_t  USBD_APCN_SetEP1RxBuffer  (USBD_HandleTypeDef   *pdev,
                                    uint8_t  *pbuff)
 {
   USBD_APCN_HandleTypeDef   *hcdc = (USBD_APCN_HandleTypeDef*) pdev->pClassData;
 
-  hcdc->RxBuffer = pbuff;
+  hcdc->EP1RxBuffer = pbuff;
+
+  return USBD_OK;
+}
+
+/**
+  * @brief  USBD_APCN_SetTxBuffer
+  * @param  pdev: device instance
+  * @param  pbuff: Tx Buffer
+  * @retval status
+  */
+uint8_t  USBD_APCN_SetEP2TxBuffer  (USBD_HandleTypeDef   *pdev,
+                                uint8_t  *pbuff,
+                                uint16_t length)
+{
+  USBD_APCN_HandleTypeDef   *hcdc = (USBD_APCN_HandleTypeDef*) pdev->pClassData;
+
+  hcdc->EP2TxBuffer = pbuff;
+  hcdc->EP2TxLength = length;
+
+  return USBD_OK;
+}
+
+
+/**
+  * @brief  USBD_APCN_SetRxBuffer
+  * @param  pdev: device instance
+  * @param  pbuff: Rx Buffer
+  * @retval status
+  */
+uint8_t  USBD_APCN_SetEP2RxBuffer  (USBD_HandleTypeDef   *pdev,
+                                   uint8_t  *pbuff)
+{
+  USBD_APCN_HandleTypeDef   *hcdc = (USBD_APCN_HandleTypeDef*) pdev->pClassData;
+
+  hcdc->EP2RxBuffer = pbuff;
 
   return USBD_OK;
 }
@@ -671,7 +723,7 @@ uint8_t  USBD_APCN_SetRxBuffer  (USBD_HandleTypeDef   *pdev,
   * @param  epnum: endpoint number
   * @retval status
   */
-uint8_t  USBD_APCN_TransmitPacket(USBD_HandleTypeDef *pdev)
+uint8_t  USBD_APCN_TransmitPacket(USBD_HandleTypeDef *pdev,uint8_t ep)
 {
   USBD_APCN_HandleTypeDef   *hcdc = (USBD_APCN_HandleTypeDef*) pdev->pClassData;
 
@@ -683,11 +735,20 @@ uint8_t  USBD_APCN_TransmitPacket(USBD_HandleTypeDef *pdev)
       hcdc->TxState = 1;
 
       /* Transmit next packet */
+      if(ep == APCN_OUT_EP1){
+
       USBD_LL_Transmit(pdev,
                        APCN_IN_EP1,
-                       hcdc->TxBuffer,
-                       hcdc->TxLength);
+                       hcdc->EP1TxBuffer,
+                       hcdc->EP1TxLength);
+      }
+      if(ep == APCN_OUT_EP2){
 
+      USBD_LL_Transmit(pdev,
+                       APCN_IN_EP2,
+                       hcdc->EP2TxBuffer,
+                       hcdc->EP2TxLength);
+      }
       return USBD_OK;
     }
     else
@@ -720,7 +781,7 @@ uint8_t  USBD_APCN_ReceivePacket(USBD_HandleTypeDef *pdev)
       /* Prepare Out endpoint to receive next packet */
       USBD_LL_PrepareReceive(pdev,
                              APCN_OUT_EP1,
-                             hcdc->RxBuffer,
+                             hcdc->EP1RxBuffer,
                              APCN_DATA_HS_OUT_PACKET_SIZE);
     }
     else
@@ -728,7 +789,7 @@ uint8_t  USBD_APCN_ReceivePacket(USBD_HandleTypeDef *pdev)
       /* Prepare Out endpoint to receive next packet */
       USBD_LL_PrepareReceive(pdev,
                              APCN_OUT_EP1,
-                             hcdc->RxBuffer,
+                             hcdc->EP1RxBuffer,
                              APCN_DATA_FS_OUT_PACKET_SIZE);
     }
     return USBD_OK;

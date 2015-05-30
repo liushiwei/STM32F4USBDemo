@@ -110,7 +110,7 @@
    int8_t (* Init)          (void);
    int8_t (* DeInit)        (void);
    int8_t (* Control)       (uint8_t, uint8_t * , uint16_t);
-   int8_t (* Receive)       (uint8_t *, uint32_t *);
+   int8_t (* Receive)       (uint8_t ,uint8_t *, uint32_t *);
 
  }USBD_APCN_ItfTypeDef;
 
@@ -120,10 +120,14 @@
    uint32_t data[APCN_DATA_HS_MAX_PACKET_SIZE/4];      /* Force 32bits alignment */
    uint8_t  CmdOpCode;
    uint8_t  CmdLength;
-   uint8_t  *RxBuffer;
-   uint8_t  *TxBuffer;
-   uint32_t RxLength;
-   uint32_t TxLength;
+   uint8_t  *EP1RxBuffer;
+   uint8_t  *EP1TxBuffer;
+   uint8_t  *EP2RxBuffer;
+   uint8_t  *EP2TxBuffer;
+   uint32_t EP1RxLength;
+   uint32_t EP1TxLength;
+   uint32_t EP2RxLength;
+   uint32_t EP2TxLength;
 
    __IO uint32_t TxState;
    __IO uint32_t RxState;
@@ -164,16 +168,24 @@ extern USBD_ClassTypeDef  USBD_APCN_ClassDriver;
 uint8_t  USBD_APCN_RegisterInterface  (USBD_HandleTypeDef   *pdev,
                                       USBD_APCN_ItfTypeDef *fops);
 
-uint8_t  USBD_APCN_SetTxBuffer        (USBD_HandleTypeDef   *pdev,
+uint8_t  USBD_APCN_SetEP1TxBuffer        (USBD_HandleTypeDef   *pdev,
                                       uint8_t  *pbuff,
                                       uint16_t length);
 
-uint8_t  USBD_APCN_SetRxBuffer        (USBD_HandleTypeDef   *pdev,
+uint8_t  USBD_APCN_SetEP1RxBuffer        (USBD_HandleTypeDef   *pdev,
                                       uint8_t  *pbuff);
+
+uint8_t  USBD_APCN_SetEP2TxBuffer        (USBD_HandleTypeDef   *pdev,
+                                      uint8_t  *pbuff,
+                                      uint16_t length);
+
+uint8_t  USBD_APCN_SetEP2RxBuffer        (USBD_HandleTypeDef   *pdev,
+                                      uint8_t  *pbuff);
+
 
 uint8_t  USBD_APCN_ReceivePacket      (USBD_HandleTypeDef *pdev);
 
-uint8_t  USBD_APCN_TransmitPacket     (USBD_HandleTypeDef *pdev);
+uint8_t  USBD_APCN_TransmitPacket     (USBD_HandleTypeDef *pdev,uint8_t );
 
 #ifdef __cplusplus
 }
