@@ -27,17 +27,34 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-  
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 USBD_HandleTypeDef  USBD_Device;
-
+extern UART_HandleTypeDef UartHandle;
 /* Private function prototypes -----------------------------------------------*/
 static void SystemClock_Config(void);
 static void Toggle_Leds(void);
+/* In stdio.h file is everything related to output stream */
+#include "stdio.h"
+#define __STDC_HOSTED__ 1
+/* We need to implement own __FILE struct */
+/* FILE struct is used from __FILE */
+struct __FILE {
+    int dummy;
+};
 
+/* You need this if you want use printf */
+/* Struct FILE is implemented in stdio.h */
+FILE __stdout;
+
+
+int fputc(int ch, FILE *f)
+{
+	 HAL_UART_Transmit_DMA(&UartHandle, &ch, 1);
+     return (ch);
+}
 /* Private functions ---------------------------------------------------------*/ 
 
 /**
@@ -78,6 +95,7 @@ int main(void)
   USBD_Start(&USBD_Device);
   
   /* Run Application (Interrupt mode) */
+  printf("USART1 Stream\n");
   while (1)
   {
     Toggle_Leds();
@@ -195,5 +213,6 @@ static void Toggle_Leds(void)
 		togglecounter = 0x00;
 	}
 }
+
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

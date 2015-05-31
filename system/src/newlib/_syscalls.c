@@ -21,7 +21,10 @@ int errno;
 #include <sys/times.h>
 #include <limits.h>
 #include <signal.h>
-
+#include "usbd_apcn_interface.h"
+#include <string.h>
+#define __STDC_HOSTED__ 1
+extern UART_HandleTypeDef UartHandle;
 void
 __initialize_args(int* p_argc, char*** p_argv);
 
@@ -303,6 +306,7 @@ int __attribute__((weak))
 _write(int file __attribute__((unused)), char* ptr __attribute__((unused)),
     int len __attribute__((unused)))
 {
+  //HAL_UART_Transmit_DMA(&UartHandle, ptr, len);
   errno = ENOSYS;
   return -1;
 }

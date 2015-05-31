@@ -578,7 +578,6 @@ static uint8_t  USBD_APCN_IsoOutIncomplete (USBD_HandleTypeDef *pdev, uint8_t ep
 static uint8_t  USBD_APCN_DataOut (USBD_HandleTypeDef *pdev,
                               uint8_t epnum)
 {
-	USBD_ErrLog("USBD_APCN_DataOut");
 	USBD_APCN_HandleTypeDef *hcdc = (USBD_APCN_HandleTypeDef*) pdev->pClassData;
 
 	/* Get the received data length */

@@ -270,19 +270,31 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 
   }
   if(UserEP1TxBufPtrIn!=0){
-	  USBD_DbgLog("HAL_TIM  UserEP1");
+	  //printf("HAL_TIM  UserEP1 \n");
   	  USBD_APCN_SetEP1TxBuffer(&USBD_Device, (uint8_t*)&UserEP1TxBuffer[0], UserEP1TxBufPtrIn);
-  		if (USBD_APCN_TransmitPacket(&USBD_Device,APCN_OUT_EP1) == USBD_OK) {
-  			UserEP1TxBufPtrIn = 0;
-  		}
+  	  int result = USBD_APCN_TransmitPacket(&USBD_Device,APCN_OUT_EP2);
+		if (result == USBD_OK) {
+			//printf("HAL_TIM  UserEP1 send success \n");
+		} else {
+			//printf("HAL_TIM  UserEP1 result error \n");
+		}
+  		UserEP1TxBufPtrIn = 0;
 
   	 }
   	 if(UserEP2TxBufPtrIn!=0){
-  		USBD_DbgLog("HAL_TIM  UserEP2");
+  		//printf("HAL_TIM  UserEP2 \n");
   		  USBD_APCN_SetEP2TxBuffer(&USBD_Device, (uint8_t*)&UserEP2TxBuffer[0], UserEP2TxBufPtrIn);
-  			if (USBD_APCN_TransmitPacket(&USBD_Device,APCN_OUT_EP2) == USBD_OK) {
-  				UserEP2TxBufPtrIn = 0;
+  		USBD_StatusTypeDef result = USBD_APCN_TransmitPacket(&USBD_Device,APCN_OUT_EP2);
+  			if (result == USBD_OK) {
+  				//printf("HAL_TIM  UserEP2 send success \n");
+  				result = USBD_OK;
+  			}else if(result ==USBD_BUSY){
+  				printf("%d",1);
+  				result = USBD_BUSY;
   			}
+  			printf("----%d",0);
+  			//printf("%d",result);
+  			UserEP2TxBufPtrIn = 0;
 
   	 }
 }
@@ -322,7 +334,6 @@ static int8_t APCN_Itf_Receive(uint8_t ep,uint8_t* Buf, uint16_t *Len)
 //						   Buf, *Len);
 
 //  HAL_UART_Transmit_DMA(&UartHandle, Buf, *Len);
-  USBD_DbgLog("Receive  %d",ep);
   if(ep==APCN_OUT_EP1){
 	  memcpy(&UserEP1TxBuffer,Buf,*Len);
 	  UserEP1TxBufPtrIn = *Len;
