@@ -783,14 +783,20 @@ uint8_t  USBD_APCN_ReceivePacket(USBD_HandleTypeDef *pdev)
                              APCN_OUT_EP1,
                              hcdc->EP1RxBuffer,
                              APCN_DATA_HS_OUT_PACKET_SIZE);
+      USBD_LL_PrepareReceive(pdev,
+                                   APCN_OUT_EP2,
+                                   hcdc->EP2RxBuffer,
+                                   APCN_DATA_HS_OUT_PACKET_SIZE);
     }
     else
     {
       /* Prepare Out endpoint to receive next packet */
-      USBD_LL_PrepareReceive(pdev,
-                             APCN_OUT_EP1,
-                             hcdc->EP1RxBuffer,
-                             APCN_DATA_FS_OUT_PACKET_SIZE);
+		USBD_LL_PrepareReceive(pdev,
+			APCN_OUT_EP1, hcdc->EP1RxBuffer,
+			APCN_DATA_FS_OUT_PACKET_SIZE);
+		USBD_LL_PrepareReceive(pdev,
+			APCN_OUT_EP2, hcdc->EP2RxBuffer,
+			APCN_DATA_FS_OUT_PACKET_SIZE);
     }
     return USBD_OK;
   }
