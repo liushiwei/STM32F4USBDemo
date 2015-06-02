@@ -27,13 +27,16 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-  
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdarg.h>
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 USBD_HandleTypeDef  USBD_Device;
-
+extern UART_HandleTypeDef UartHandle;
 /* Private function prototypes -----------------------------------------------*/
 static void SystemClock_Config(void);
 static void Toggle_Leds(void);
@@ -80,7 +83,7 @@ int main(void)
   /* Run Application (Interrupt mode) */
   while (1)
   {
-    Toggle_Leds();
+    //Toggle_Leds();
   }
 }
 
@@ -194,6 +197,24 @@ static void Toggle_Leds(void)
 		}
 		togglecounter = 0x00;
 	}
+}
+
+void Loger(const char  *plog,...){
+	char sa[256]={0};
+	sa[sizeof(sa)-1]=0;
+	va_list argp;
+
+	va_start (argp, plog); /* 将可变长参数转换为va_list */
+
+	snprintf(sa,sizeof(sa),plog, argp); /* 将va_list传递给子函数 */
+
+	va_end (argp);
+	if(sa[sizeof(sa)-1]!=0)
+	{
+	   printf("warning:string will be truncated");
+	   sa[sizeof(sa)-1]=0;
+	}
+	HAL_UART_Transmit_DMA(&UartHandle, sa, strlen(plog));
 }
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

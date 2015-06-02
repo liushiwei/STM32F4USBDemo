@@ -244,9 +244,9 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
   uint32_t buffptr;
   uint32_t buffsize;
   
-  if(UserTxBufPtrOut != UserTxBufPtrIn)
+  /*if(UserTxBufPtrOut != UserTxBufPtrIn)
   {
-    if(UserTxBufPtrOut > UserTxBufPtrIn) /* Rollback */
+    if(UserTxBufPtrOut > UserTxBufPtrIn)  Rollback
     {
       buffsize = APP_RX_DATA_SIZE - UserTxBufPtrOut;
     }
@@ -268,22 +268,27 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
       }
     }
 
-  }
+  }*/
   if(UserEP1TxBufPtrIn!=0){
-	  USBD_DbgLog("HAL_TIM  UserEP1");
+	  Loger("HAL_TIM  UserEP1\n");
   	  USBD_APCN_SetEP1TxBuffer(&USBD_Device, (uint8_t*)&UserEP1TxBuffer[0], UserEP1TxBufPtrIn);
   		if (USBD_APCN_TransmitPacket(&USBD_Device,APCN_OUT_EP1) == USBD_OK) {
-  			UserEP1TxBufPtrIn = 0;
+  			Loger("HAL_TIM  UserEP1 send message OK!\n");
+  		}else{
+  			Loger("HAL_TIM  UserEP1 send message ERROR!\n");
   		}
+  		UserEP1TxBufPtrIn = 0;
 
   	 }
   	 if(UserEP2TxBufPtrIn!=0){
-  		USBD_DbgLog("HAL_TIM  UserEP2");
+  		Loger("HAL_TIM  UserEP2\n");
   		  USBD_APCN_SetEP2TxBuffer(&USBD_Device, (uint8_t*)&UserEP2TxBuffer[0], UserEP2TxBufPtrIn);
   			if (USBD_APCN_TransmitPacket(&USBD_Device,APCN_OUT_EP2) == USBD_OK) {
-  				UserEP2TxBufPtrIn = 0;
+  				Loger("HAL_TIM  UserEP2 send message OK!\n");
+  			}else{
+  				Loger("HAL_TIM  UserEP2 send message ERROR!\n");
   			}
-
+  			UserEP2TxBufPtrIn = 0;
   	 }
 }
 
@@ -322,7 +327,7 @@ static int8_t APCN_Itf_Receive(uint8_t ep,uint8_t* Buf, uint16_t *Len)
 //						   Buf, *Len);
 
 //  HAL_UART_Transmit_DMA(&UartHandle, Buf, *Len);
-  USBD_DbgLog("Receive  %d",ep);
+	Loger("Receive ");
   if(ep==APCN_OUT_EP1){
 	  memcpy(&UserEP1TxBuffer,Buf,*Len);
 	  UserEP1TxBufPtrIn = *Len;

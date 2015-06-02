@@ -155,10 +155,10 @@ int _write(int file, char *ptr, int len)
 //            while (USART_GetFlagStatus(STDOUT_USART, USART_FLAG_TC) == RESET);
 //            USART_SendData(STDOUT_USART, (uint8_t) * ptr++);
 //        }
-    	HAL_UART_Transmit_DMA(&UartHandle, ptr, len);
+//    	HAL_UART_Transmit_DMA(&UartHandle, ptr, len);
         break;
     case STDERR_FILENO: /* stderr */
-    	HAL_UART_Transmit_DMA(&UartHandle, ptr, len);
+//    	HAL_UART_Transmit_DMA(&UartHandle, ptr, len);
         break;
     default:
         errno = EBADF;
