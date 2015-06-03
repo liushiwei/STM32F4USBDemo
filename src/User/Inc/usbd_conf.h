@@ -45,19 +45,25 @@
 #define USBD_SELF_POWERED                     1
 #define USBD_DEBUG_LEVEL                      0
 #define USE_USB_FS
+#define LOG_BUFFER							  256
 /* Exported macro ------------------------------------------------------------*/
 /* Memory management macros */
 #define USBD_malloc               malloc
 #define USBD_free                 free
 #define USBD_memset               memset
 #define USBD_memcpy               memcpy
-    
+extern uint8_t LogBuffer[LOG_BUFFER];
+extern UART_HandleTypeDef UartHandle;
+void  Loger(UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size);
 /* DEBUG macros */
 #if (USBD_DEBUG_LEVEL > 0)
 #define  USBD_UsrLog(...)   printf(__VA_ARGS__);\
                             printf("\n");
 #else
-#define USBD_UsrLog(...)
+#define USBD_UsrLog(...)    //memset(LogBuffer,0,LOG_BUFFER); \
+							snprintf(LogBuffer,sizeof(LogBuffer),__VA_ARGS__); \
+							Loger(&UartHandle, &LogBuffer[0], strlen(&LogBuffer[0]));
+
 #endif
 
 #if (USBD_DEBUG_LEVEL > 1)

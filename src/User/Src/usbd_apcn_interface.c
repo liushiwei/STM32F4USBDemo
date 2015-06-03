@@ -75,7 +75,7 @@ static int8_t APCN_Itf_Receive(uint8_t ep,uint8_t* pbuf, uint16_t *Len);
 static void Error_Handler(void);
 static void ComPort_Config(void);
 static void TIM_Config(void);
-
+int VCP_write(const uint8_t *pBuffer, int size,int ep);
 USBD_APCN_ItfTypeDef USBD_APCN_fops =
 {
   APCN_Itf_Init,
@@ -270,25 +270,28 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 
   }*/
   if(UserEP1TxBufPtrIn!=0){
-	  Loger("HAL_TIM  UserEP1\n");
-  	  USBD_APCN_SetEP1TxBuffer(&USBD_Device, (uint8_t*)&UserEP1TxBuffer[0], UserEP1TxBufPtrIn);
-  		if (USBD_APCN_TransmitPacket(&USBD_Device,APCN_OUT_EP1) == USBD_OK) {
-  			Loger("HAL_TIM  UserEP1 send message OK!\n");
-  		}else{
-  			Loger("HAL_TIM  UserEP1 send message ERROR!\n");
-  		}
-  		UserEP1TxBufPtrIn = 0;
-
+//	  USBD_UsrLog("HAL_TIM  UserEP1 %s\n",UserEP1TxBuffer);
+//  	  USBD_APCN_SetEP1TxBuffer(&USBD_Device, (uint8_t*)&UserEP1TxBuffer[0], UserEP1TxBufPtrIn);
+//  		if (USBD_APCN_TransmitPacket(&USBD_Device,APCN_OUT_EP1) == USBD_OK) {
+//  			USBD_UsrLog("HAL_TIM  UserEP1 send message OK!\n");
+//  		}else{
+//  			USBD_UsrLog("HAL_TIM  UserEP1 send message ERROR!\n");
+//  		}
+//  		UserEP1TxBufPtrIn = 0;
+	  VCP_write((uint8_t*)&UserEP1TxBuffer[0], UserEP1TxBufPtrIn,APCN_OUT_EP1);
+	  UserEP1TxBufPtrIn = 0;
   	 }
   	 if(UserEP2TxBufPtrIn!=0){
-  		Loger("HAL_TIM  UserEP2\n");
-  		  USBD_APCN_SetEP2TxBuffer(&USBD_Device, (uint8_t*)&UserEP2TxBuffer[0], UserEP2TxBufPtrIn);
-  			if (USBD_APCN_TransmitPacket(&USBD_Device,APCN_OUT_EP2) == USBD_OK) {
-  				Loger("HAL_TIM  UserEP2 send message OK!\n");
-  			}else{
-  				Loger("HAL_TIM  UserEP2 send message ERROR!\n");
-  			}
-  			UserEP2TxBufPtrIn = 0;
+//  		USBD_UsrLog("HAL_TIM  UserEP2 %s\n",UserEP2TxBuffer);
+//  		  USBD_APCN_SetEP2TxBuffer(&USBD_Device, (uint8_t*)&UserEP2TxBuffer[0], UserEP2TxBufPtrIn);
+//  			if (USBD_APCN_TransmitPacket(&USBD_Device,APCN_OUT_EP2) == USBD_OK) {
+//  				USBD_UsrLog("HAL_TIM  UserEP2 send message OK!\n");
+//  			}else{
+//  				USBD_UsrLog("HAL_TIM  UserEP2 send message ERROR!\n");
+//  			}
+//  			UserEP2TxBufPtrIn = 0;
+  		VCP_write((uint8_t*)&UserEP2TxBuffer[0], UserEP2TxBufPtrIn,APCN_OUT_EP2);
+  		UserEP2TxBufPtrIn = 0;
   	 }
 }
 
@@ -326,8 +329,8 @@ static int8_t APCN_Itf_Receive(uint8_t ep,uint8_t* Buf, uint16_t *Len)
 //	                       APCN_IN_EP1,
 //						   Buf, *Len);
 
-//  HAL_UART_Transmit_DMA(&UartHandle, Buf, *Len);
-	Loger("Receive ");
+  //HAL_UART_Transmit_DMA(&UartHandle, Buf, *Len);
+  //USBD_UsrLog("Receive ep = %u",ep);
   if(ep==APCN_OUT_EP1){
 	  memcpy(&UserEP1TxBuffer,Buf,*Len);
 	  UserEP1TxBufPtrIn = *Len;
@@ -486,6 +489,51 @@ void HAL_UART_ErrorCallback(UART_HandleTypeDef *UartHandle)
 static void Error_Handler(void)
 {
   /* Add your own code here */
+}
+
+int VCP_write(const uint8_t *pBuffer, int size,int ep)
+{
+    if (size > APCN_DATA_FS_OUT_PACKET_SIZE)
+    {
+        int offset;
+        for (offset = 0; offset < size; offset++)
+        {
+            int todo = MIN(APCN_DATA_FS_OUT_PACKET_SIZE,
+                           size - offset);
+            int done = VCP_write(pBuffer + offset, todo,ep);
+            if (done != todo)
+                return offset + done;
+        }
+
+        return size;
+    }
+
+    USBD_APCN_HandleTypeDef *pCDC =
+            (USBD_APCN_HandleTypeDef *)USBD_Device.pClassData;
+	if (ep == APCN_OUT_EP1) {
+		while (pCDC->Tx1State) {
+		} //Wait for previous transfer
+
+		USBD_APCN_SetEP1TxBuffer(&USBD_Device, (uint8_t *) pBuffer, size);
+		if (USBD_APCN_TransmitPacket(&USBD_Device,ep) != USBD_OK)
+			return 0;
+
+		while (pCDC->Tx1State) {
+		} //Wait until transfer is done
+		return size;
+	} else {
+		while (pCDC->Tx2State) {
+		} //Wait for previous transfer
+
+		USBD_APCN_SetEP2TxBuffer(&USBD_Device, (uint8_t *) pBuffer, size);
+		if (USBD_APCN_TransmitPacket(&USBD_Device,ep) != USBD_OK)
+			return 0;
+
+		while (pCDC->Tx2State) {
+		} //Wait until transfer is done
+		return size;
+	}
+
 }
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

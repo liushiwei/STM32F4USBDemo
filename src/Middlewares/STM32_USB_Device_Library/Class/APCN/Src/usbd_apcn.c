@@ -326,9 +326,10 @@ static uint8_t  USBD_APCN_Init (USBD_HandleTypeDef *pdev,
 		((USBD_APCN_ItfTypeDef *) pdev->pUserData)->Init();
 
 		/* Init Xfer states */
-		hcdc->TxState = 0;
-		hcdc->RxState = 0;
-
+		hcdc->Tx1State = 0;
+		hcdc->Rx1State = 0;
+		hcdc->Tx2State = 0;
+		hcdc->Rx2State = 0;
 		if (pdev->dev_speed == USBD_SPEED_HIGH) {
 			/* Prepare Out endpoint to receive next packet */
 			USBD_LL_PrepareReceive(pdev,
@@ -500,8 +501,12 @@ static uint8_t  USBD_APCN_DataIn (USBD_HandleTypeDef *pdev,
 
 	  if(pdev->pClassData != NULL)
 	  {
-
-	    hcdc->TxState = 0;
+		  if(epnum == APCN_IN_EP1){
+			  hcdc->Tx1State = 0;
+		  }
+		  if(epnum == APCN_IN_EP2){
+		  	  hcdc->Tx2State = 0;
+		  }
 
 	    return USBD_OK;
 	  }
@@ -729,32 +734,44 @@ uint8_t  USBD_APCN_TransmitPacket(USBD_HandleTypeDef *pdev,uint8_t ep)
 
   if(pdev->pClassData != NULL)
   {
-    if(hcdc->TxState == 0)
-    {
-      /* Tx Transfer in progress */
-      hcdc->TxState = 1;
+	  if(ep == APCN_OUT_EP1){
+		  if(hcdc->Tx1State == 0)
+		      {
+		        /* Tx Transfer in progress */
+		        hcdc->Tx1State = 1;
 
-      /* Transmit next packet */
-      if(ep == APCN_OUT_EP1){
+		        /* Transmit next packet */
 
-      USBD_LL_Transmit(pdev,
-                       APCN_IN_EP1,
-                       hcdc->EP1TxBuffer,
-                       hcdc->EP1TxLength);
-      }
-      if(ep == APCN_OUT_EP2){
 
-      USBD_LL_Transmit(pdev,
-                       APCN_IN_EP2,
-                       hcdc->EP2TxBuffer,
-                       hcdc->EP2TxLength);
-      }
-      return USBD_OK;
-    }
-    else
-    {
-      return USBD_BUSY;
-    }
+		        USBD_LL_Transmit(pdev,
+		                         APCN_IN_EP1,
+		                         hcdc->EP1TxBuffer,
+		                         hcdc->EP1TxLength);
+
+		        return USBD_OK;
+		      }
+		      else
+		      {
+		        return USBD_BUSY;
+		      }
+	  }
+	  if(ep == APCN_OUT_EP2){
+		  if(hcdc->Tx2State == 0)
+		  {
+				/* Tx Transfer in progress */
+				hcdc->Tx2State = 1;
+
+				/* Transmit next packet */
+
+				USBD_LL_Transmit(pdev,
+				APCN_IN_EP2, hcdc->EP2TxBuffer, hcdc->EP2TxLength);
+				return USBD_OK;
+			} else {
+				return USBD_BUSY;
+			}
+	  }
+	  return USBD_FAIL;
+
   }
   else
   {

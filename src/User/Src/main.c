@@ -199,22 +199,6 @@ static void Toggle_Leds(void)
 	}
 }
 
-void Loger(const char  *plog,...){
-	char sa[256]={0};
-	sa[sizeof(sa)-1]=0;
-	va_list argp;
 
-	va_start (argp, plog); /* 将可变长参数转换为va_list */
-
-	snprintf(sa,sizeof(sa),plog, argp); /* 将va_list传递给子函数 */
-
-	va_end (argp);
-	if(sa[sizeof(sa)-1]!=0)
-	{
-	   printf("warning:string will be truncated");
-	   sa[sizeof(sa)-1]=0;
-	}
-	HAL_UART_Transmit_DMA(&UartHandle, sa, strlen(plog));
-}
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

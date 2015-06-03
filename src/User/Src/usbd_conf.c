@@ -34,7 +34,7 @@
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 PCD_HandleTypeDef hpcd;
-
+uint8_t LogBuffer[LOG_BUFFER] = {0};//Log Buffer
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
 
@@ -565,6 +565,15 @@ uint32_t USBD_LL_GetRxDataSize(USBD_HandleTypeDef *pdev, uint8_t  ep_addr)
 void  USBD_LL_Delay(uint32_t Delay)
 {
   HAL_Delay(Delay);  
+}
+
+void Loger(UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size){
+//	HAL_UART_StateTypeDef state = HAL_UART_GetState(&huart);
+//	while(state != HAL_UART_STATE_READY&&state !=HAL_UART_STATE_BUSY_RX){
+//		state = HAL_UART_GetState(&huart);
+//		HAL_Delay(10);
+//	}
+	HAL_UART_Transmit_DMA(huart, pData, Size);
 }
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

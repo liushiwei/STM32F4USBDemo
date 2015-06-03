@@ -129,8 +129,10 @@
    uint32_t EP2RxLength;
    uint32_t EP2TxLength;
 
-   __IO uint32_t TxState;
-   __IO uint32_t RxState;
+   __IO uint32_t Tx1State;
+   __IO uint32_t Rx1State;
+   __IO uint32_t Tx2State;
+   __IO uint32_t Rx2State;
  }
  USBD_APCN_HandleTypeDef;
 

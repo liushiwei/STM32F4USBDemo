@@ -40,7 +40,7 @@
 /* Exported constants --------------------------------------------------------*/ 
 /* Exported macro ------------------------------------------------------------*/
 /* Exported functions ------------------------------------------------------- */
-void  Loger    (const char  *plog,...);
+
 #endif /* __MAIN_H */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
