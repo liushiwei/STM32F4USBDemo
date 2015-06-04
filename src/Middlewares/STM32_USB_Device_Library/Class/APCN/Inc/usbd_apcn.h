@@ -52,7 +52,7 @@
 #define APCN_EPIN_ADDR                 0x81
 #define APCN_EPIN_SIZE                 0x10
 
-#define USB_APCN_CONFIG_DESC_SIZ       53
+#define USB_APCN_CONFIG_DESC_SIZ       81
 
  /**
   * @liushiwei

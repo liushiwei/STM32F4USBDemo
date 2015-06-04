@@ -241,57 +241,30 @@ static int8_t APCN_Itf_Control (uint8_t cmd, uint8_t* pbuf, uint16_t length)
   */
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
-  uint32_t buffptr;
-  uint32_t buffsize;
-  
-  /*if(UserTxBufPtrOut != UserTxBufPtrIn)
-  {
-    if(UserTxBufPtrOut > UserTxBufPtrIn)  Rollback
-    {
-      buffsize = APP_RX_DATA_SIZE - UserTxBufPtrOut;
-    }
-    else 
-    {
-      buffsize = UserTxBufPtrIn - UserTxBufPtrOut;
-    }
-    
-    buffptr = UserTxBufPtrOut;
-    
-    USBD_APCN_SetEP1TxBuffer(&USBD_Device, (uint8_t*)&UserTxBuffer[buffptr], buffsize);
-    
-    if(USBD_APCN_TransmitPacket(&USBD_Device,APCN_OUT_EP1) == USBD_OK)
-    {
-      UserTxBufPtrOut += buffsize;
-      if (UserTxBufPtrOut == APP_RX_DATA_SIZE)
-      {
-        UserTxBufPtrOut = 0;
-      }
-    }
 
-  }*/
   if(UserEP1TxBufPtrIn!=0){
 //	  USBD_UsrLog("HAL_TIM  UserEP1 %s\n",UserEP1TxBuffer);
-//  	  USBD_APCN_SetEP1TxBuffer(&USBD_Device, (uint8_t*)&UserEP1TxBuffer[0], UserEP1TxBufPtrIn);
-//  		if (USBD_APCN_TransmitPacket(&USBD_Device,APCN_OUT_EP1) == USBD_OK) {
-//  			USBD_UsrLog("HAL_TIM  UserEP1 send message OK!\n");
-//  		}else{
-//  			USBD_UsrLog("HAL_TIM  UserEP1 send message ERROR!\n");
-//  		}
-//  		UserEP1TxBufPtrIn = 0;
-	  VCP_write((uint8_t*)&UserEP1TxBuffer[0], UserEP1TxBufPtrIn,APCN_OUT_EP1);
-	  UserEP1TxBufPtrIn = 0;
+  	  USBD_APCN_SetEP1TxBuffer(&USBD_Device, (uint8_t*)&UserEP1TxBuffer[0], UserEP1TxBufPtrIn);
+  		if (USBD_APCN_TransmitPacket(&USBD_Device,APCN_OUT_EP1) == USBD_OK) {
+  			USBD_UsrLog("HAL_TIM  UserEP1 send message OK!\n");
+  		}else{
+  			USBD_UsrLog("HAL_TIM  UserEP1 send message ERROR!\n");
+  		}
+  		UserEP1TxBufPtrIn = 0;
+//	  VCP_write((uint8_t*)&UserEP1TxBuffer[0], UserEP1TxBufPtrIn,APCN_OUT_EP1);
+//	  UserEP1TxBufPtrIn = 0;
   	 }
   	 if(UserEP2TxBufPtrIn!=0){
 //  		USBD_UsrLog("HAL_TIM  UserEP2 %s\n",UserEP2TxBuffer);
-//  		  USBD_APCN_SetEP2TxBuffer(&USBD_Device, (uint8_t*)&UserEP2TxBuffer[0], UserEP2TxBufPtrIn);
-//  			if (USBD_APCN_TransmitPacket(&USBD_Device,APCN_OUT_EP2) == USBD_OK) {
-//  				USBD_UsrLog("HAL_TIM  UserEP2 send message OK!\n");
-//  			}else{
-//  				USBD_UsrLog("HAL_TIM  UserEP2 send message ERROR!\n");
-//  			}
-//  			UserEP2TxBufPtrIn = 0;
-  		VCP_write((uint8_t*)&UserEP2TxBuffer[0], UserEP2TxBufPtrIn,APCN_OUT_EP2);
-  		UserEP2TxBufPtrIn = 0;
+  		  USBD_APCN_SetEP2TxBuffer(&USBD_Device, (uint8_t*)&UserEP2TxBuffer[0], UserEP2TxBufPtrIn);
+  			if (USBD_APCN_TransmitPacket(&USBD_Device,APCN_OUT_EP2) == USBD_OK) {
+  				USBD_UsrLog("HAL_TIM  UserEP2 send message OK!\n");
+  			}else{
+  				USBD_UsrLog("HAL_TIM  UserEP2 send message ERROR!\n");
+  			}
+  			UserEP2TxBufPtrIn = 0;
+//  		VCP_write((uint8_t*)&UserEP2TxBuffer[0], UserEP2TxBufPtrIn,APCN_OUT_EP2);
+//  		UserEP2TxBufPtrIn = 0;
   	 }
 }
 
@@ -329,7 +302,7 @@ static int8_t APCN_Itf_Receive(uint8_t ep,uint8_t* Buf, uint16_t *Len)
 //	                       APCN_IN_EP1,
 //						   Buf, *Len);
 
-  //HAL_UART_Transmit_DMA(&UartHandle, Buf, *Len);
+  HAL_UART_Transmit_DMA(&UartHandle, Buf, *Len);
   //USBD_UsrLog("Receive ep = %u",ep);
   if(ep==APCN_OUT_EP1){
 	  memcpy(&UserEP1TxBuffer,Buf,*Len);
